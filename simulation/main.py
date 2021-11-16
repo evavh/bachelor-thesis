@@ -1,35 +1,19 @@
 import sys
-import unittest
 import numpy
-import random
-import collections
 import getopt
-import os
-import math
 
 from amuse.ic.plummer import new_plummer_model
 from amuse.ic.salpeter import new_salpeter_mass_distribution_nbody
 from amuse.units import nbody_system
 from amuse.units import units
 from amuse.community.ph4.interface import ph4 as grav
-from amuse.community.smalln.interface import SmallN
 from amuse.community.kepler.interface import Kepler
 from amuse.ext.LagrangianRadii import LagrangianRadii
 
 from amuse import datamodel
-from amuse.datamodel import particle_attributes
-from amuse.datamodel import trees
 from amuse.rfi.core import is_mpd_running
 
 ADD_MASS_FUNCTION = False
-
-
-def is_a_parent(child1_key, child2_key):
-    return child1_key > 0 or child2_key > 0
-
-
-def is_not_a_child(is_a_child):
-    return is_a_child == 0
 
 
 def print_log(s, gravity, E0=0.0 | nbody_system.energy):
@@ -44,18 +28,9 @@ def print_log(s, gravity, E0=0.0 | nbody_system.energy):
     E = Etop + Ebin
     if E0 == 0 | nbody_system.energy:
         E0 = E
-    Rv = -0.5*M*M/U
-    Q = -T/U
     print("")
     print("time = ", gravity.get_time(), "m=", M, "de=", (E-E0)/E0)
     print("Energies = ", E, U, T)
-    """
-    print("")
-    print("%s: time = %.10f, mass = %.10f, dE/E0 = %.5e" \
-          % (s, gravity.get_time(), M, ((E-E0)/E0)))
-    print("%senergies = %.10f %.10f %.10f" \
-          % (' '*(2+len(s)), E, U, T))
-    """
 
     sys.stdout.flush()
     return E
@@ -103,22 +78,6 @@ def find_binaries(particles,
     return binaries, binding_energies
 
 
-def force_binary_from_two_stars(stars, star0, star1,
-                                d=0.001 | nbody_system.length,
-                                eps=0.0 | nbody_system.length):
-
-    star0.mass = 1 | nbody_system.mass
-    star0.position = (0, 0, 0) | nbody_system.length
-    star0.velocity = (0, 0, 0) | nbody_system.speed
-    star1.mass = 0.5 | nbody_system.mass
-    v = (nbody_system.G*(stars[0].mass+stars[1].mass)/d).sqrt()
-    star1.position = star0.position + d*(1, 0, 0)
-    star1.velocity = star0.velocity + v*(0, 1, 0)
-
-    stars.move_to_center()
-    stars.scale_to_standard(smoothing_length_squared=eps)
-
-
 def test_multiples(infile=None, number_of_stars=40,
                    end_time=10 | nbody_system.time,
                    delta_t=1 | nbody_system.time,
@@ -153,8 +112,6 @@ def test_multiples(infile=None, number_of_stars=40,
 
     if infile == None:
 
-        #cluster = new_cluster(number_of_stars)
-
         print("making a Plummer model")
         stars = new_plummer_model(number_of_stars)
 
@@ -162,7 +119,6 @@ def test_multiples(infile=None, number_of_stars=40,
         stars.id = id+1 | units.none
 
         print("setting particle masses and radii")
-        #stars.mass = (1.0 / number_of_stars) | nbody_system.mass
         if ADD_MASS_FUNCTION:
             scaled_mass = new_salpeter_mass_distribution_nbody(number_of_stars)
             stars.mass = scaled_mass
@@ -172,11 +128,6 @@ def test_multiples(infile=None, number_of_stars=40,
         stars.move_to_center()
         print("scaling stars to virial equilibrium")
         stars.scale_to_standard(smoothing_length_squared=eps2)
-
-        # artificially for a binary from the two first stars in the list
-        # force_binary_from_two_stars(stars, stars[0], stars[1],
-        #                            d = 0.001 | nbody_system.length,
-        #                            eps=gravity.parameters.epsilon_squared)
 
         time = 0.0 | nbody_system.time
         sys.stdout.flush()
@@ -199,13 +150,11 @@ def test_multiples(infile=None, number_of_stars=40,
             if len(line) > 0:
                 count += 1
                 cols = line.split()
-                if count == 1:
-                    snap = int(cols[0])
-                elif count == 2:
+                if count == 2:
                     number_of_stars = int(cols[0])
                 elif count == 3:
                     time = float(cols[0]) | nbody_system.time
-                else:
+                elif count != 1:
                     if len(cols) >= 8:
                         id.append(int(cols[0]))
                         mass.append(float(cols[1]))
@@ -222,11 +171,8 @@ def test_multiples(infile=None, number_of_stars=40,
         stars.velocity = vel | nbody_system.speed
         stars.radius = 0. | nbody_system.length
 
-    # print "IDs:", stars.id
     sys.stdout.flush()
 
-    global root_index
-    rooot_index = len(stars) + 1000
     # -----------------------------------------------------------------
 
     # Note that there are actually three GPU options to test:
@@ -239,7 +185,7 @@ def test_multiples(infile=None, number_of_stars=40,
         try:
             gravity = grav(number_of_workers=n_workers,
                            redirection="none", mode="gpu")
-        except Exception as ex:
+        except:
             gravity = grav(number_of_workers=n_workers, redirection="none")
     else:
         gravity = grav(number_of_workers=n_workers, redirection="none")
@@ -252,7 +198,6 @@ def test_multiples(infile=None, number_of_stars=40,
     gravity.parameters.use_gpu = use_gpu
 
     print("adding particles")
-    # print stars
     sys.stdout.flush()
     gravity.particles.add_particles(stars)
     gravity.commit_particles()
@@ -296,7 +241,6 @@ def test_multiples(infile=None, number_of_stars=40,
                 E = print_log('ph4', gravity, E0)
                 print('dEmult =', dEmult, 'dE =', (E-E0)-dEmult)
                 channel.copy()  # need other stars to be current in memory
-                # print_energies(stars)
 
                 # Synchronize everything for now.  Later we will just
                 # synchronize neighbors if gravity supports that.  TODO
@@ -304,6 +248,7 @@ def test_multiples(infile=None, number_of_stars=40,
 
                 dEmult += manage_encounter(star1, star2, stars,
                                            gravity.particles)
+                print("There should be a runtime error here?")
 
                 # Recommit reinitializes all particles (and redundant
                 # here, since done automatically).  Later we will just
@@ -323,8 +268,6 @@ def test_multiples(infile=None, number_of_stars=40,
         Rl = LagrangianRadii(stars, massf=[0.1, 0.5, 1.0] | units.none)
         r10pc.append(Rl[0])
         r50pc.append(Rl[1])
-        # r10pc.append(Rl[4])
-        # r50pc.append(Rl[6])
 
         binaries, Eb = find_binaries(stars, minimal_binding_energy=-0.0001)
         if len(binaries) > 0:
@@ -360,7 +303,6 @@ def test_multiples(infile=None, number_of_stars=40,
 
         E = print_log('ph4', gravity, E0)
         print('dEmult =', dEmult, 'dE =', (E-E0))
-        #print('dEmult =', dEmult, 'dE =', (E-E0)-dEmult)
 
     print('')
     gravity.stop()
@@ -392,7 +334,6 @@ if __name__ == '__main__':
     infile = None
     N = 100
     t_end = -1 | nbody_system.time
-    #t_end = 70.0 | nbody_system.time
     delta_t = 1.0 | nbody_system.time
     n_workers = 1
     use_gpu = 0
