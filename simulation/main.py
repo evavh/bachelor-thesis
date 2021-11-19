@@ -189,33 +189,12 @@ def test_multiples(infile=None, number_of_stars=40,
         while gravity.get_time() < time:
             gravity.evolve_model(time)
             if stopping_condition.is_set():
-                star1 = stopping_condition.particles(0)[0]
-                star2 = stopping_condition.particles(1)[0]
-                print('\n--------------------------------------------------')
-                print('stopping condition set at time',
+                print('Collision detected at time',
                       gravity.get_time())
 
                 E = print_log('ph4', gravity, E0)
                 print('dEmult =', dEmult, 'dE =', (E-E0)-dEmult)
-                channel.copy()  # need other stars to be current in memory
-
-                # Synchronize everything for now.  Later we will just
-                # synchronize neighbors if gravity supports that.  TODO
-                gravity.synchronize_model()
-
-                dEmult += manage_encounter(star1, star2, stars,
-                                           gravity.particles)
-                print("There should be a runtime error here?")
-
-                # Recommit reinitializes all particles (and redundant
-                # here, since done automatically).  Later we will just
-                # recommit and reinitialize a list if gravity supports
-                # it. TODO
-                gravity.recommit_particles()
-
-                E = print_log('ph4', gravity, E0)
-                print('dEmult =', dEmult, 'dE =', (E-E0)-dEmult)
-                print('\n--------------------------------------------------')
+                break
 
         ls = len(stars)
 
