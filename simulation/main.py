@@ -110,67 +110,24 @@ def test_multiples(infile=None, number_of_stars=40,
 
     # -----------------------------------------------------------------
 
-    if infile == None:
+    print("making a Plummer model")
+    stars = new_plummer_model(number_of_stars)
 
-        print("making a Plummer model")
-        stars = new_plummer_model(number_of_stars)
+    id = numpy.arange(number_of_stars)
+    stars.id = id+1 | units.none
 
-        id = numpy.arange(number_of_stars)
-        stars.id = id+1 | units.none
+    print("setting particle masses and radii")
+    if ADD_MASS_FUNCTION:
+        scaled_mass = new_salpeter_mass_distribution_nbody(number_of_stars)
+        stars.mass = scaled_mass
+    stars.radius = 0.0 | nbody_system.length
 
-        print("setting particle masses and radii")
-        if ADD_MASS_FUNCTION:
-            scaled_mass = new_salpeter_mass_distribution_nbody(number_of_stars)
-            stars.mass = scaled_mass
-        stars.radius = 0.0 | nbody_system.length
+    print("centering stars")
+    stars.move_to_center()
+    print("scaling stars to virial equilibrium")
+    stars.scale_to_standard(smoothing_length_squared=eps2)
 
-        print("centering stars")
-        stars.move_to_center()
-        print("scaling stars to virial equilibrium")
-        stars.scale_to_standard(smoothing_length_squared=eps2)
-
-        time = 0.0 | nbody_system.time
-        sys.stdout.flush()
-
-    else:
-
-        # Read the input data.  Units are dynamical.
-
-        print("reading file", infile)
-        sys.stdout.flush()
-
-        id = []
-        mass = []
-        pos = []
-        vel = []
-
-        f = open(infile, 'r')
-        count = 0
-        for line in f:
-            if len(line) > 0:
-                count += 1
-                cols = line.split()
-                if count == 2:
-                    number_of_stars = int(cols[0])
-                elif count == 3:
-                    time = float(cols[0]) | nbody_system.time
-                elif count != 1:
-                    if len(cols) >= 8:
-                        id.append(int(cols[0]))
-                        mass.append(float(cols[1]))
-                        pos.append((float(cols[2]),
-                                    float(cols[3]), float(cols[4])))
-                        vel.append((float(cols[5]),
-                                    float(cols[6]), float(cols[7])))
-        f.close()
-
-        stars = datamodel.Particles(number_of_stars)
-        stars.id = id | units.none
-        stars.mass = mass | nbody_system.mass
-        stars.position = pos | nbody_system.length
-        stars.velocity = vel | nbody_system.speed
-        stars.radius = 0. | nbody_system.length
-
+    time = 0.0 | nbody_system.time
     sys.stdout.flush()
 
     # -----------------------------------------------------------------
