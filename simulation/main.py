@@ -180,11 +180,6 @@ def test_multiples(infile=None, number_of_stars=40,
     stopping_condition = gravity.stopping_conditions.collision_detection
     stopping_condition.enable()
 
-    # Tree structure on the stars dataset:
-
-    stars.child1 = 0 | units.object_key
-    stars.child2 = 0 | units.object_key
-
     zero = 0 | nbody_system.time
     while True:
         time += delta_t
