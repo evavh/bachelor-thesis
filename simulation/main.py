@@ -1,6 +1,7 @@
 import sys
 import numpy
 import getopt
+import os
 
 from amuse.ic.plummer import new_plummer_model
 from amuse.ic.salpeter import new_salpeter_mass_distribution_nbody
@@ -14,6 +15,11 @@ from amuse import datamodel
 from amuse.rfi.core import is_mpd_running
 
 ADD_MASS_FUNCTION = False
+
+
+def create_directory(directory_name):
+    if not os.path.exists(directory_name):
+        os.makedirs(directory_name)
 
 
 def print_log(s, gravity, E0=0.0 | nbody_system.energy):
@@ -249,7 +255,8 @@ def test_multiples(infile=None, number_of_stars=40,
                    s=10*stars.mass/stars.mass.max())
     pyplot.xlabel("x")
     pyplot.ylabel("y")
-    pyplot.show()
+    pyplot.savefig("simulation/output/final_state.png")
+    pyplot.clf()
 
     pyplot.plot(times.value_in(nbody_system.time),
                 rcore.value_in(nbody_system.length), c='b')
@@ -262,7 +269,7 @@ def test_multiples(infile=None, number_of_stars=40,
     pyplot.xlabel("time")
     pyplot.ylabel("radius")
     pyplot.semilogy()
-    pyplot.show()
+    pyplot.savefig("simulation/output/radii.png")
 
 
 if __name__ == '__main__':
@@ -308,6 +315,8 @@ if __name__ == '__main__':
             n_workers = int(a)
         else:
             print("unexpected argument", o)
+
+    create_directory("simulation/output")
 
     if random_seed <= 0:
         numpy.random.seed()
