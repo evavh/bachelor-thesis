@@ -91,7 +91,7 @@ def test_multiples(infile=None, number_of_stars=40,
                    accuracy_parameter=0.1,
                    softening_length=-1 | nbody_system.length):
 
-    if infile != None:
+    if infile is not None:
         print("input file =", infile)
     print("end_time =", end_time)
     print("delta_t =", delta_t)
@@ -140,9 +140,9 @@ def test_multiples(infile=None, number_of_stars=40,
 
     # Note that there are actually three GPU options to test:
     #
-    #	1. use the GPU code and allow GPU use (default)
-    #	2. use the GPU code but disable GPU use (-g)
-    #	3. use the non-GPU code (-G)
+    # 1. use the GPU code and allow GPU use (default)
+    # 2. use the GPU code but disable GPU use (-g)
+    # 3. use the non-GPU code (-G)
 
     if gpu_worker == 1:
         try:
