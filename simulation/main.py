@@ -203,8 +203,6 @@ def test_multiples(infile=None, number_of_stars=40,
                 print('dEmult =', dEmult, 'dE =', (E-E0)-dEmult)
                 break
 
-        ls = len(stars)
-
         # Copy values from the module to the set in memory.
         channel.copy()
         write_set_to_file(stars.savepoint(time),
@@ -236,16 +234,6 @@ def test_multiples(infile=None, number_of_stars=40,
         # we don't want to overwrite silently.
 
         channel.copy_attribute("index_in_code", "id")
-
-        if len(stars) != ls:
-            if 0:
-                print("stars:")
-                for s in stars:
-                    print(" ", s.id, s.mass,
-                          s.x, s.y, s.z)
-            else:
-                print("number of stars =", len(stars))
-            sys.stdout.flush()
 
         E = print_log('ph4', gravity, E0)
         print('dEmult =', dEmult, 'dE =', (E-E0))
