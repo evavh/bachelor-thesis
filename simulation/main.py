@@ -11,6 +11,7 @@ from amuse.community.ph4.interface import ph4 as grav
 from amuse.community.kepler.interface import Kepler
 from amuse.ext.LagrangianRadii import LagrangianRadii
 
+from amuse.io import write_set_to_file
 from amuse import datamodel
 from amuse.rfi.core import is_mpd_running
 
@@ -20,6 +21,11 @@ ADD_MASS_FUNCTION = False
 def create_directory(directory_name):
     if not os.path.exists(directory_name):
         os.makedirs(directory_name)
+
+
+def remove_file(filename):
+    if os.path.exists(filename):
+        os.remove(filename)
 
 
 def print_log(s, gravity, E0=0.0 | nbody_system.energy):
@@ -201,6 +207,9 @@ def test_multiples(infile=None, number_of_stars=40,
 
         # Copy values from the module to the set in memory.
         channel.copy()
+        write_set_to_file(stars.savepoint(time),
+                          "simulation/output/snapshots.hdf5", "hdf5",
+                          append_to_file=True)
 
         Rl = LagrangianRadii(stars, massf=[0.1, 0.5, 1.0] | units.none)
         r10pc.append(Rl[0])
@@ -312,6 +321,7 @@ if __name__ == '__main__':
             print("unexpected argument", o)
 
     create_directory("simulation/output")
+    remove_file("simulation/output/snapshots.hdf5")
 
     if random_seed <= 0:
         numpy.random.seed()
