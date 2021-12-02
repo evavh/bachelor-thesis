@@ -205,13 +205,7 @@ def test_multiples(infile=None, number_of_stars=40,
 
         # Copy values from the module to the set in memory.
         channel.copy()
-        write_set_to_file(stars.savepoint(time),
-                          "simulation/output/snapshots.hdf5", "hdf5",
-                          append_to_file=True)
-
-        Rl = LagrangianRadii(stars, massf=[0.1, 0.5, 1.0] | units.none)
-        r10pc.append(Rl[0])
-        r50pc.append(Rl[1])
+        channel.copy_attribute("index_in_code", "id")
 
         binaries, Eb = find_binaries(stars, minimal_binding_energy=-0.0001)
         if len(binaries) > 0:
@@ -222,18 +216,19 @@ def test_multiples(infile=None, number_of_stars=40,
             if numpy.min(Eb) < -0.1 and end_time < zero:
                 end_time = time + (20 | nbody_system.time)
 
+        Rl = LagrangianRadii(stars, massf=[0.1, 0.5, 1.0] | units.none)
+        r10pc.append(Rl[0])
+        r50pc.append(Rl[1])
+
         pos, coreradius, coredens = \
             gravity.particles.densitycentre_coreradius_coredens()
         rvir.append(stars.virial_radius())
         rcore.append(coreradius)
         times.append(time)
-
-        # Copy the index (ID) as used in the module to the id field in
-        # memory.  The index is not copied by default, as different
-        # codes may have different indices for the same particle and
-        # we don't want to overwrite silently.
-
-        channel.copy_attribute("index_in_code", "id")
+        
+        write_set_to_file(stars.savepoint(time),
+                          "simulation/output/snapshots.hdf5", "hdf5",
+                          append_to_file=True)
 
         E = print_log('ph4', gravity, E0)
         print('dEmult =', dEmult, 'dE =', (E-E0))
