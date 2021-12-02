@@ -6,3 +6,4 @@ thesis/examples/
 thesis/template_inf/
 analysis/plots/
 analysis/*.hdf5
+administration/
