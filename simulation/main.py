@@ -15,6 +15,8 @@ from amuse.io import write_set_to_file
 from amuse import datamodel
 from amuse.rfi.core import is_mpd_running
 
+from matplotlib import pyplot
+
 ADD_MASS_FUNCTION = False
 
 
@@ -26,6 +28,16 @@ def create_directory(directory_name):
 def remove_file(filename):
     if os.path.exists(filename):
         os.remove(filename)
+
+
+def scatterplot(stars, filename):
+    pyplot.scatter(stars.x.value_in(nbody_system.length),
+                   stars.y.value_in(nbody_system.length),
+                   s=10*stars.mass/stars.mass.max())
+    pyplot.xlabel("x")
+    pyplot.ylabel("y")
+    pyplot.savefig(filename)
+    pyplot.clf()
 
 
 def print_log(s, gravity, E0=0.0 | nbody_system.energy):
@@ -225,7 +237,7 @@ def test_multiples(infile=None, number_of_stars=40,
         rvir.append(stars.virial_radius())
         rcore.append(coreradius)
         times.append(time)
-        
+
         write_set_to_file(stars.savepoint(time),
                           "simulation/output/snapshots.hdf5", "hdf5",
                           append_to_file=True)
@@ -236,14 +248,7 @@ def test_multiples(infile=None, number_of_stars=40,
     print('')
     gravity.stop()
 
-    from matplotlib import pyplot
-    pyplot.scatter(stars.x.value_in(nbody_system.length),
-                   stars.y.value_in(nbody_system.length),
-                   s=10*stars.mass/stars.mass.max())
-    pyplot.xlabel("x")
-    pyplot.ylabel("y")
-    pyplot.savefig("simulation/output/final_state.png")
-    pyplot.clf()
+    scatterplot(stars, "simulation/output/final_state.png")
 
     pyplot.plot(times.value_in(nbody_system.time),
                 rcore.value_in(nbody_system.length), c='b')
