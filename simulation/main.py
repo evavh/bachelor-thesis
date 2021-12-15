@@ -172,7 +172,9 @@ def test_multiples(infile=None, number_of_stars=40,
         gravity = grav(number_of_workers=n_workers, redirection="none")
 
     gravity.initialize_code()
+    print("Initialized code")
     gravity.parameters.set_defaults()
+    print("Set defaults")
 
     gravity.parameters.timestep_parameter = accuracy_parameter
     gravity.parameters.epsilon_squared = eps2
@@ -249,6 +251,8 @@ def test_multiples(infile=None, number_of_stars=40,
     gravity.stop()
 
     scatterplot(stars, "simulation/output/final_state.png")
+    
+    write_set_to_file(stars, "simulation/output/final_state.csv", "csv")
 
     pyplot.plot(times.value_in(nbody_system.time),
                 rcore.value_in(nbody_system.length), c='b')
