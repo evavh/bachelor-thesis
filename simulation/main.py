@@ -251,7 +251,7 @@ def test_multiples(infile=None, number_of_stars=40,
     gravity.stop()
 
     scatterplot(stars, "simulation/output/final_state.png")
-    
+
     write_set_to_file(stars, "simulation/output/final_state.csv", "csv")
 
     pyplot.plot(times.value_in(nbody_system.time),
