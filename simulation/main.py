@@ -105,7 +105,7 @@ def find_binaries(particles,
 def test_multiples(infile=None, number_of_stars=40,
                    end_time=10 | nbody_system.time,
                    delta_t=1 | nbody_system.time,
-                   n_workers=1, use_gpu=1, gpu_worker=1,
+                   n_workers=1, use_gpu=1, use_gpu_code=1,
                    accuracy_parameter=0.1,
                    softening_length=-1 | nbody_system.length):
 
@@ -162,7 +162,7 @@ def test_multiples(infile=None, number_of_stars=40,
     # 2. use the GPU code but disable GPU use (-g)
     # 3. use the non-GPU code (-G)
 
-    if gpu_worker == 1:
+    if use_gpu_code == 1:
         try:
             gravity = grav(number_of_workers=n_workers,
                            redirection="none", mode="gpu")
@@ -276,7 +276,7 @@ if __name__ == '__main__':
     delta_t = 1.0 | nbody_system.time
     n_workers = 1
     use_gpu = 0
-    gpu_worker = 0
+    use_gpu_code = 0
     accuracy_parameter = 0.1
     softening_length = 0 | nbody_system.length
     random_seed = -1
@@ -297,10 +297,10 @@ if __name__ == '__main__':
         elif o == "-f":
             infile = a
         elif o == "-g":
-            use_gpu = 0
+            use_gpu = 1
         elif o == "-G":
-            use_gpu = 0
-            gpu_worker = 0
+            use_gpu = 1
+            use_gpu_code = 1
         elif o == "-n":
             N = int(a)
         elif o == "-s":
@@ -323,5 +323,5 @@ if __name__ == '__main__':
 
     assert is_mpd_running()
     test_multiples(infile, N, t_end, delta_t, n_workers,
-                   use_gpu, gpu_worker,
+                   use_gpu, use_gpu_code,
                    accuracy_parameter, softening_length)
