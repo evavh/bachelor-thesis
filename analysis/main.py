@@ -1,6 +1,7 @@
 from amuse.io import read_set_from_file
 from amuse.units import nbody_system
 from matplotlib import pyplot
+import pickle
 import os
 
 
@@ -25,6 +26,7 @@ if __name__ == '__main__':
     create_directory("analysis/data")
 
     snapshots = read_set_from_file("analysis/data/snapshots.hdf5", "hdf5")
+    metrics = pickle.load(open("analysis/data/cluster_metrics.pkl", "rb"))
 
     for stars in snapshots.history:
         time = stars.get_timestamp()

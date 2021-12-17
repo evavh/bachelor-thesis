@@ -2,6 +2,7 @@ import sys
 import numpy
 import getopt
 import os
+import pickle
 
 from amuse.ic.plummer import new_plummer_model
 from amuse.ic.salpeter import new_salpeter_mass_distribution_nbody
@@ -252,6 +253,8 @@ def test_multiples(infile=None, number_of_stars=40,
     scatterplot(stars, "simulation/output/final_state.png")
 
     write_set_to_file(stars, "simulation/output/final_state.csv", "csv")
+    metrics_filename = "simulation/output/cluster_metrics.pkl"
+    pickle.dump(metrics, open(metrics_filename, "wb"))
 
     pyplot.plot(metrics["times"].value_in(nbody_system.time),
                 metrics["rcore"].value_in(nbody_system.length), c='b')
