@@ -56,7 +56,6 @@ def print_log(s, gravity, E0=0.0 | nbody_system.energy):
     print("time = ", gravity.get_time(), "m=", M, "de=", (E-E0)/E0)
     print("Energies = ", E, U, T)
 
-    sys.stdout.flush()
     return E
 
 
@@ -116,7 +115,6 @@ def test_multiples(infile=None, number_of_stars=40,
     print("n_workers =", n_workers)
     print("use_gpu =", use_gpu)
     print("\ninitializing the gravity module")
-    sys.stdout.flush()
 
     times = [] | nbody_system.time
     rvir = [] | nbody_system.length
@@ -152,7 +150,6 @@ def test_multiples(infile=None, number_of_stars=40,
     stars.scale_to_standard(smoothing_length_squared=eps2)
 
     time = 0.0 | nbody_system.time
-    sys.stdout.flush()
 
     # -----------------------------------------------------------------
 
@@ -181,7 +178,6 @@ def test_multiples(infile=None, number_of_stars=40,
     gravity.parameters.use_gpu = use_gpu
 
     print("adding particles")
-    sys.stdout.flush()
     gravity.particles.add_particles(stars)
     gravity.commit_particles()
 
@@ -189,7 +185,6 @@ def test_multiples(infile=None, number_of_stars=40,
     print("number_of_stars =", number_of_stars)
     print("evolving to time =", end_time,
           "in steps of", delta_t)
-    sys.stdout.flush()
 
     E0 = print_log('ph4', gravity)
     dEmult = 0.0
