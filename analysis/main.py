@@ -1,6 +1,12 @@
 from amuse.io import read_set_from_file
 from amuse.units import nbody_system
 from matplotlib import pyplot
+import os
+
+
+def create_directory(directory_name):
+    if not os.path.exists(directory_name):
+        os.makedirs(directory_name)
 
 
 def scatterplot(stars, time):
@@ -9,12 +15,17 @@ def scatterplot(stars, time):
                    s=10*stars.mass/stars.mass.max())
     pyplot.xlabel("x")
     pyplot.ylabel("y")
-    pyplot.savefig("analysis/plots/"+str(time)+".png")
+    pyplot.savefig("analysis/plots/scatter"+str(time)+".png")
     pyplot.clf()
 
 
 if __name__ == '__main__':
-    snapshots = read_set_from_file("analysis/snapshots.hdf5", "hdf5")
+    create_directory("analysis/plots")
+    create_directory("analysis/plots/scatter")
+    create_directory("analysis/data")
+
+    snapshots = read_set_from_file("analysis/data/snapshots.hdf5", "hdf5")
+
     for stars in snapshots.history:
         time = stars.get_timestamp()
         print("t=", time, "length=", len(stars))
