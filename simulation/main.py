@@ -116,11 +116,11 @@ def test_multiples(infile=None, number_of_stars=40,
     print("use_gpu =", use_gpu)
     print("\ninitializing the gravity module")
 
-    times = [] | nbody_system.time
-    rvir = [] | nbody_system.length
-    rcore = [] | nbody_system.length
-    r10pc = [] | nbody_system.length
-    r50pc = [] | nbody_system.length
+    metrics = {"times": [] | nbody_system.time,
+               "rvir": [] | nbody_system.length,
+               "rcore": [] | nbody_system.length,
+               "r10pc": [] | nbody_system.length,
+               "r50pc": [] | nbody_system.length}
 
     # -----------------------------------------------------------------
 
@@ -226,14 +226,14 @@ def test_multiples(infile=None, number_of_stars=40,
                 end_time = time + (20 | nbody_system.time)
 
         Rl = LagrangianRadii(stars, massf=[0.1, 0.5, 1.0] | units.none)
-        r10pc.append(Rl[0])
-        r50pc.append(Rl[1])
+        metrics["r10pc"].append(Rl[0])
+        metrics["r50pc"].append(Rl[1])
 
         pos, coreradius, coredens = \
             gravity.particles.densitycentre_coreradius_coredens()
-        rvir.append(stars.virial_radius())
-        rcore.append(coreradius)
-        times.append(time)
+        metrics["rvir"].append(stars.virial_radius())
+        metrics["rcore"].append(coreradius)
+        metrics["times"].append(time)
 
         write_set_to_file(stars.savepoint(time),
                           "simulation/output/snapshots.hdf5", "hdf5",
@@ -249,14 +249,14 @@ def test_multiples(infile=None, number_of_stars=40,
 
     write_set_to_file(stars, "simulation/output/final_state.csv", "csv")
 
-    pyplot.plot(times.value_in(nbody_system.time),
-                rcore.value_in(nbody_system.length), c='b')
-    pyplot.plot(times.value_in(nbody_system.time),
-                rvir.value_in(nbody_system.length), c='r')
-    pyplot.plot(times.value_in(nbody_system.time),
-                r10pc.value_in(nbody_system.length), c='k', ls="--", lw=1)
-    pyplot.plot(times.value_in(nbody_system.time),
-                r50pc.value_in(nbody_system.length), c='k', ls="--", lw=3)
+    pyplot.plot(metrics["times"].value_in(nbody_system.time),
+                metrics["rcore"].value_in(nbody_system.length), c='b')
+    pyplot.plot(metrics["times"].value_in(nbody_system.time),
+                metrics["rvir"].value_in(nbody_system.length), c='r')
+    pyplot.plot(metrics["times"].value_in(nbody_system.time),
+                metrics["r10pc"].value_in(nbody_system.length), c='k', ls="--", lw=1)
+    pyplot.plot(metrics["times"].value_in(nbody_system.time),
+                metrics["r50pc"].value_in(nbody_system.length), c='k', ls="--", lw=3)
     pyplot.xlabel("time")
     pyplot.ylabel("radius")
     pyplot.semilogy()
