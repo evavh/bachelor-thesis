@@ -120,7 +120,9 @@ def test_multiples(infile=None, number_of_stars=40,
                "rvir": [] | nbody_system.length,
                "rcore": [] | nbody_system.length,
                "r10pc": [] | nbody_system.length,
-               "r50pc": [] | nbody_system.length}
+               "r50pc": [] | nbody_system.length,
+               "density_centre": [],
+               "core_density": []}
 
     # -----------------------------------------------------------------
 
@@ -229,11 +231,13 @@ def test_multiples(infile=None, number_of_stars=40,
         metrics["r10pc"].append(Rl[0])
         metrics["r50pc"].append(Rl[1])
 
-        pos, coreradius, coredens = \
+        density_centre, core_radius, core_density = \
             gravity.particles.densitycentre_coreradius_coredens()
         metrics["rvir"].append(stars.virial_radius())
-        metrics["rcore"].append(coreradius)
+        metrics["rcore"].append(core_radius)
         metrics["times"].append(time)
+        metrics["density_centre"].append(density_centre)
+        metrics["core_density"].append(core_density)
 
         write_set_to_file(stars.savepoint(time),
                           "simulation/output/snapshots.hdf5", "hdf5",
