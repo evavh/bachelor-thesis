@@ -256,19 +256,6 @@ def test_multiples(infile=None, number_of_stars=40,
     metrics_filename = "simulation/output/cluster_metrics.pkl"
     pickle.dump(metrics, open(metrics_filename, "wb"))
 
-    pyplot.plot(metrics["times"].value_in(nbody_system.time),
-                metrics["rcore"].value_in(nbody_system.length), c='b')
-    pyplot.plot(metrics["times"].value_in(nbody_system.time),
-                metrics["rvir"].value_in(nbody_system.length), c='r')
-    pyplot.plot(metrics["times"].value_in(nbody_system.time),
-                metrics["r10pc"].value_in(nbody_system.length), c='k', ls="--", lw=1)
-    pyplot.plot(metrics["times"].value_in(nbody_system.time),
-                metrics["r50pc"].value_in(nbody_system.length), c='k', ls="--", lw=3)
-    pyplot.xlabel("time")
-    pyplot.ylabel("radius")
-    pyplot.semilogy()
-    pyplot.savefig("simulation/output/radii.png")
-
 
 if __name__ == '__main__':
 
