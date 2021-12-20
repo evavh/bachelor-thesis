@@ -41,42 +41,6 @@ def scatterplot(stars, filename):
     pyplot.clf()
 
 
-def print_log(s, gravity, E0=0.0 | nbody_system.energy):
-    M = gravity.total_mass
-    U = gravity.potential_energy
-    T = gravity.kinetic_energy
-    try:
-        Ebin = gravity.get_binary_energy()
-    except:
-        Ebin = 0 | nbody_system.energy
-    Etop = T + U
-    E = Etop + Ebin
-    if E0 == 0 | nbody_system.energy:
-        E0 = E
-    print("")
-    print("time = ", gravity.get_time(), "m=", M, "de=", (E-E0)/E0)
-    print("Energies = ", E, U, T)
-
-    return E
-
-
-def get_component_binary_elements(comp1, comp2):
-    kep = Kepler(redirection="none")
-    kep.initialize_code()
-
-    mass = comp1.mass + comp2.mass
-    pos = comp2.position - comp1.position
-    vel = comp2.velocity - comp1.velocity
-    kep.initialize_from_dyn(mass, pos[0], pos[1], pos[2],
-                            vel[0], vel[1], vel[2])
-    a, e = kep.get_elements()
-    r = kep.get_separation()
-    E, J = kep.get_integrals()  # per unit reduced mass, note
-    kep.stop()
-
-    return mass, a, e, r, E
-
-
 def find_binaries(particles,
                   minimal_binding_energy=-1.e-4,
                   G=nbody_system.G):
@@ -193,9 +157,6 @@ def test_multiples(infile=None, number_of_stars=40,
     print("evolving to time =", end_time,
           "in steps of", delta_t)
 
-    E0 = print_log('ph4', gravity)
-    dEmult = 0.0
-
     # Channel to copy values from the code to the set in memory.
     channel = gravity.particles.new_channel_to(stars)
 
@@ -215,8 +176,6 @@ def test_multiples(infile=None, number_of_stars=40,
                 print('Collision detected at time',
                       gravity.get_time())
 
-                E = print_log('ph4', gravity, E0)
-                print('dEmult =', dEmult, 'dE =', (E-E0)-dEmult)
                 break
 
         # Copy values from the module to the set in memory.
@@ -226,11 +185,12 @@ def test_multiples(infile=None, number_of_stars=40,
         binaries, Eb = find_binaries(stars, minimal_binding_energy=-0.0001)
         if len(binaries) > 0:
             print("Binding energies:", Eb)
-            mass, a, e, r, E = get_component_binary_elements(
-                binaries[0], binaries[1])
-            print("Binary:", time, mass, a, e, r, E)
             if numpy.min(Eb) < -0.1 and end_time < zero:
                 end_time = time + (20 | nbody_system.time)
+
+        metrics["times"].append(time)
+
+        metrics["rvir"].append(stars.virial_radius())
 
         Rl = LagrangianRadii(stars, massf=[0.1, 0.5, 1.0] | units.none)
         metrics["r10pc"].append(Rl[0])
@@ -238,10 +198,8 @@ def test_multiples(infile=None, number_of_stars=40,
 
         density_centre, core_radius, core_density = \
             gravity.particles.densitycentre_coreradius_coredens()
-        metrics["rvir"].append(stars.virial_radius())
-        metrics["rcore"].append(core_radius)
-        metrics["times"].append(time)
         metrics["density_centre"].append(density_centre)
+        metrics["rcore"].append(core_radius)
         metrics["core_density"].append(core_density)
 
         metrics["total_mass"].append(gravity.total_mass)
@@ -252,9 +210,6 @@ def test_multiples(infile=None, number_of_stars=40,
         write_set_to_file(stars.savepoint(time),
                           "simulation/output/snapshots.hdf5", "hdf5",
                           append_to_file=True)
-
-        E = print_log('ph4', gravity, E0)
-        print('dEmult =', dEmult, 'dE =', (E-E0))
 
     print('')
     gravity.stop()
