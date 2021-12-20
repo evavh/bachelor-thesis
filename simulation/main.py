@@ -123,7 +123,11 @@ def test_multiples(infile=None, number_of_stars=40,
                "r10pc": [] | nbody_system.length,
                "r50pc": [] | nbody_system.length,
                "density_centre": [],
-               "core_density": []}
+               "core_density": [],
+               "total_mass": [],
+               "potential_energy": [],
+               "kinetic_energy": [],
+               "total_binary_energy": []}
 
     # -----------------------------------------------------------------
 
@@ -239,6 +243,11 @@ def test_multiples(infile=None, number_of_stars=40,
         metrics["times"].append(time)
         metrics["density_centre"].append(density_centre)
         metrics["core_density"].append(core_density)
+
+        metrics["total_mass"].append(gravity.total_mass)
+        metrics["potential_energy"].append(gravity.potential_energy)
+        metrics["kinetic_energy"].append(gravity.kinetic_energy)
+        metrics["total_binary_energy"].append(gravity.get_binary_energy())
 
         write_set_to_file(stars.savepoint(time),
                           "simulation/output/snapshots.hdf5", "hdf5",

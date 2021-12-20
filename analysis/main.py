@@ -43,6 +43,8 @@ if __name__ == '__main__':
     snapshots = read_set_from_file("analysis/data/snapshots.hdf5", "hdf5")
     metrics = pickle.load(open("analysis/data/cluster_metrics.pkl", "rb"))
 
+    print("Loaded metrics:", metrics.keys())
+
     for stars in snapshots.history:
         time = stars.get_timestamp()
         print("t=", time, "length=", len(stars))
