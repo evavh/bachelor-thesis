@@ -9,7 +9,6 @@ from amuse.ic.salpeter import new_salpeter_mass_distribution_nbody
 from amuse.units import nbody_system
 from amuse.units import units
 from amuse.community.ph4.interface import ph4 as grav
-from amuse.community.kepler.interface import Kepler
 from amuse.ext.LagrangianRadii import LagrangianRadii
 
 from amuse.io import write_set_to_file
@@ -66,15 +65,10 @@ def find_binaries(particles,
     return binaries, binding_energies
 
 
-def test_multiples(infile=None, number_of_stars=40,
-                   end_time=10 | nbody_system.time,
-                   delta_t=1 | nbody_system.time,
-                   n_workers=1, use_gpu=1, use_gpu_code=1,
-                   accuracy_parameter=0.1,
-                   softening_length=-1 | nbody_system.length):
+def test_multiples(N, end_time, delta_t, n_workers,
+                   use_gpu, use_gpu_code, accuracy_parameter,
+                   softening_length):
 
-    if infile is not None:
-        print("input file =", infile)
     print("end_time =", end_time)
     print("delta_t =", delta_t)
     print("n_workers =", n_workers)
@@ -96,7 +90,7 @@ def test_multiples(infile=None, number_of_stars=40,
     # -----------------------------------------------------------------
 
     if softening_length == -1 | nbody_system.length:
-        eps2 = 0.25*(float(number_of_stars))**(-0.666667) \
+        eps2 = 0.25*(float(N))**(-0.666667) \
             | nbody_system.length**2
     else:
         eps2 = softening_length*softening_length
@@ -104,14 +98,14 @@ def test_multiples(infile=None, number_of_stars=40,
     # -----------------------------------------------------------------
 
     print("making a Plummer model")
-    stars = new_plummer_model(number_of_stars)
+    stars = new_plummer_model(N)
 
-    id = numpy.arange(number_of_stars)
+    id = numpy.arange(N)
     stars.id = id+1 | units.none
 
     print("setting particle masses and radii")
     if ADD_MASS_FUNCTION:
-        scaled_mass = new_salpeter_mass_distribution_nbody(number_of_stars)
+        scaled_mass = new_salpeter_mass_distribution_nbody(N)
         stars.mass = scaled_mass
     stars.radius = 0.0 | nbody_system.length
 
@@ -153,7 +147,7 @@ def test_multiples(infile=None, number_of_stars=40,
     gravity.commit_particles()
 
     print('')
-    print("number_of_stars =", number_of_stars)
+    print("number_of_stars =", N)
     print("evolving to time =", end_time,
           "in steps of", delta_t)
 
@@ -223,7 +217,6 @@ def test_multiples(infile=None, number_of_stars=40,
 
 if __name__ == '__main__':
 
-    infile = None
     N = 100
     t_end = -1 | nbody_system.time
     delta_t = 1.0 | nbody_system.time
@@ -247,8 +240,6 @@ if __name__ == '__main__':
             delta_t = float(a) | nbody_system.time
         elif o == "-e":
             softening_length = float(a) | nbody_system.length
-        elif o == "-f":
-            infile = a
         elif o == "-g":
             use_gpu = 1
         elif o == "-G":
@@ -275,6 +266,6 @@ if __name__ == '__main__':
     print("random seed =", random_seed)
 
     assert is_mpd_running()
-    test_multiples(infile, N, t_end, delta_t, n_workers,
+    test_multiples(N, t_end, delta_t, n_workers,
                    use_gpu, use_gpu_code,
                    accuracy_parameter, softening_length)
