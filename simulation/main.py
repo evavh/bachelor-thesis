@@ -40,31 +40,6 @@ def scatterplot(stars, filename):
     pyplot.clf()
 
 
-def find_binaries(particles,
-                  minimal_binding_energy=-1.e-4,
-                  G=nbody_system.G):
-
-    # Search for and print out bound pairs using a numpy-accelerated
-    # N^2 search.
-
-    binding_energies = []
-    binaries = datamodel.Particles(0)
-    for p in particles:
-        mu = p.mass*particles.mass/(p.mass+particles.mass)
-        dr = (particles.position - p.position).lengths()
-        dv = (particles.velocity - p.velocity).lengths()
-        E = 0.5*mu*dv*dv - G*p.mass*particles.mass/dr
-        indices = numpy.argsort(E.number)
-        sorted_E = E[indices]
-        Emin = sorted_E[1].number
-        if Emin < minimal_binding_energy and p.id < particles[indices[1]].id:
-            print('bound', p.id, particles[indices[1]].id, Emin)
-            binding_energies.append(Emin)
-            binaries.add_particle(p)
-            binaries.add_particle(particles[indices[1]])
-    return binaries, binding_energies
-
-
 def test_multiples(N, end_time, delta_t, n_workers,
                    use_gpu, use_gpu_code, accuracy_parameter,
                    softening_length):
@@ -176,10 +151,30 @@ def test_multiples(N, end_time, delta_t, n_workers,
         channel.copy()
         channel.copy_attribute("index_in_code", "id")
 
-        binaries, Eb = find_binaries(stars, minimal_binding_energy=-0.0001)
+        minimal_binding_energy = -0.0001
+
+        # Search for and print out bound pairs using a numpy-accelerated
+        # N^2 search.
+        G = nbody_system.G
+        binding_energies = []
+        binaries = datamodel.Particles(0)
+        for p in stars:
+            mu = p.mass*stars.mass/(p.mass+stars.mass)
+            dr = (stars.position - p.position).lengths()
+            dv = (stars.velocity - p.velocity).lengths()
+            E = 0.5*mu*dv*dv - G*p.mass*stars.mass/dr
+            indices = numpy.argsort(E.number)
+            sorted_E = E[indices]
+            Emin = sorted_E[1].number
+            if Emin < minimal_binding_energy and p.id < stars[indices[1]].id:
+                print('bound', p.id, stars[indices[1]].id, Emin)
+                binding_energies.append(Emin)
+                binaries.add_particle(p)
+                binaries.add_particle(stars[indices[1]])
+
         if len(binaries) > 0:
-            print("Binding energies:", Eb)
-            if numpy.min(Eb) < -0.1 and end_time < zero:
+            print("Binding energies:", binding_energies)
+            if numpy.min(binding_energies) < -0.1 and end_time < zero:
                 end_time = time + (20 | nbody_system.time)
 
         metrics["times"].append(time)
