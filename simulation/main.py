@@ -163,14 +163,14 @@ def test_multiples(N, end_time, delta_t, n_workers,
             dr = (stars.position - p.position).lengths()
             dv = (stars.velocity - p.velocity).lengths()
             E = 0.5*mu*dv*dv - G*p.mass*stars.mass/dr
-            indices = numpy.argsort(E.number)
-            sorted_E = E[indices]
-            Emin = sorted_E[1].number
-            if Emin < minimal_binding_energy and p.id < stars[indices[1]].id:
-                print('bound', p.id, stars[indices[1]].id, Emin)
+
+            # .number removes units
+            Emin_index = numpy.argpartition(E.number, 2)[1]
+            Emin = E.number[Emin_index]
+            if Emin < minimal_binding_energy and p.id < stars[Emin_index].id:
                 binding_energies.append(Emin)
                 binaries.add_particle(p)
-                binaries.add_particle(stars[indices[1]])
+                binaries.add_particle(stars[Emin_index])
 
         if len(binaries) > 0:
             print("Binding energies:", binding_energies)
