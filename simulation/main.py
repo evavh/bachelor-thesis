@@ -158,7 +158,7 @@ def test_multiples(N, end_time, delta_t, n_workers,
         # N^2 search.
         G = nbody_system.G
         binding_energies = []
-        binaries = datamodel.Particles(0)
+        binaries = []
         for star in stars:
             mu = star.mass*stars.mass/(star.mass+stars.mass)
             dr = (stars.position - star.position).lengths()
@@ -166,14 +166,13 @@ def test_multiples(N, end_time, delta_t, n_workers,
             Eb = 0.5*mu*dv*dv - G*star.mass*stars.mass/dr
 
             # .number removes units
-                binaries.add_particle(p)
-                binaries.add_particle(stars[Emin_index])
             # find index of second smallest binding energy
             minEb_index = numpy.argpartition(Eb.number, 2)[1]
             minEb = Eb.number[minEb_index]
             partner = stars[minEb_index]
             if minEb < minimal_binding_energy and star.id < partner.id:
                 binding_energies.append(minEb)
+                binaries.append((star, partner))
 
         if len(binaries) > 0:
             binding_energies = [x/kT for x in binding_energies]
