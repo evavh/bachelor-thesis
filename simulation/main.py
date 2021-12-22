@@ -152,7 +152,7 @@ def test_multiples(N, end_time, delta_t, n_workers,
         channel.copy_attribute("index_in_code", "id")
 
         kT = 1/(6*N)
-        minimal_binding_energy = -0.0001
+        minimal_binding_energy = 0.0001
 
         # Search for and print out bound pairs using a numpy-accelerated
         # N^2 search.
@@ -163,21 +163,21 @@ def test_multiples(N, end_time, delta_t, n_workers,
             mu = star.mass*stars.mass/(star.mass+stars.mass)
             dr = (stars.position - star.position).lengths()
             dv = (stars.velocity - star.velocity).lengths()
-            Eb = 0.5*mu*dv*dv - G*star.mass*stars.mass/dr
+            Eb = G*star.mass*stars.mass/dr - 0.5*mu*dv*dv
 
             # .number removes units
-            # find index of second smallest binding energy
-            minEb_index = numpy.argpartition(Eb.number, 2)[1]
-            minEb = Eb.number[minEb_index]
-            partner = stars[minEb_index]
-            if minEb < minimal_binding_energy and star.id < partner.id:
-                binding_energies.append(minEb)
+            # find index of second largest binding energy
+            maxEb_index = numpy.argpartition(-Eb.number, 2)[1]
+            maxEb = Eb.number[maxEb_index]
+            partner = stars[maxEb_index]
+            if maxEb > minimal_binding_energy and star.id < partner.id:
+                binding_energies.append(maxEb)
                 binaries.append((star, partner))
 
         if len(binaries) > 0:
             binding_energies = [x/kT for x in binding_energies]
             print("Binding energies in kT:", binding_energies)
-            if numpy.min(binding_energies) < -0.1 and end_time < zero:
+            if numpy.min(binding_energies) > 0.1 and end_time < zero:
                 end_time = time + (20 | nbody_system.time)
 
         metrics["times"].append(time)
