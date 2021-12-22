@@ -151,6 +151,7 @@ def test_multiples(N, end_time, delta_t, n_workers,
         channel.copy()
         channel.copy_attribute("index_in_code", "id")
 
+        kT = 1/(6*N)
         minimal_binding_energy = -0.0001
 
         # Search for and print out bound pairs using a numpy-accelerated
@@ -158,22 +159,25 @@ def test_multiples(N, end_time, delta_t, n_workers,
         G = nbody_system.G
         binding_energies = []
         binaries = datamodel.Particles(0)
-        for p in stars:
-            mu = p.mass*stars.mass/(p.mass+stars.mass)
-            dr = (stars.position - p.position).lengths()
-            dv = (stars.velocity - p.velocity).lengths()
-            E = 0.5*mu*dv*dv - G*p.mass*stars.mass/dr
+        for star in stars:
+            mu = star.mass*stars.mass/(star.mass+stars.mass)
+            dr = (stars.position - star.position).lengths()
+            dv = (stars.velocity - star.velocity).lengths()
+            Eb = 0.5*mu*dv*dv - G*star.mass*stars.mass/dr
 
             # .number removes units
-            Emin_index = numpy.argpartition(E.number, 2)[1]
-            Emin = E.number[Emin_index]
-            if Emin < minimal_binding_energy and p.id < stars[Emin_index].id:
-                binding_energies.append(Emin)
                 binaries.add_particle(p)
                 binaries.add_particle(stars[Emin_index])
+            # find index of second smallest binding energy
+            minEb_index = numpy.argpartition(Eb.number, 2)[1]
+            minEb = Eb.number[minEb_index]
+            partner = stars[minEb_index]
+            if minEb < minimal_binding_energy and star.id < partner.id:
+                binding_energies.append(minEb)
 
         if len(binaries) > 0:
-            print("Binding energies:", binding_energies)
+            binding_energies = [x/kT for x in binding_energies]
+            print("Binding energies in kT:", binding_energies)
             if numpy.min(binding_energies) < -0.1 and end_time < zero:
                 end_time = time + (20 | nbody_system.time)
 
