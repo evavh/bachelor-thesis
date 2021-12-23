@@ -49,7 +49,8 @@ def test_multiples(N, end_time, delta_t, n_workers,
     print("use_gpu =", use_gpu)
     print("\ninitializing the gravity module")
 
-    metrics = {"times": [] | nbody_system.time,
+    metrics = {"N": N,
+               "times": [] | nbody_system.time,
                "rvir": [] | nbody_system.length,
                "rcore": [] | nbody_system.length,
                "r10pc": [] | nbody_system.length,
@@ -178,6 +179,9 @@ def test_multiples(N, end_time, delta_t, n_workers,
             print("Binding energies:", binding_energies)
             binding_energies_kT = [x/kT for x in binding_energies]
             print("Binding energies in kT:", binding_energies_kT)
+            metrics["first_binaries"] = binaries
+            metrics["first_binary_energies_kT"] = binding_energies_kT
+            metrics["first_binary_time"] = time
             if end_time < zero:
                 end_time = time + (20 | nbody_system.time)
 
