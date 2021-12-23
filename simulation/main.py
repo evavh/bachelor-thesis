@@ -12,7 +12,6 @@ from amuse.community.ph4.interface import ph4 as grav
 from amuse.ext.LagrangianRadii import LagrangianRadii
 
 from amuse.io import write_set_to_file
-from amuse import datamodel
 from amuse.rfi.core import is_mpd_running
 
 from matplotlib import pyplot
@@ -165,8 +164,9 @@ def test_multiples(N, end_time, delta_t, n_workers,
             dv = (stars.velocity - star.velocity).lengths()
             Eb = G*star.mass*stars.mass/dr - 0.5*mu*dv*dv
 
-            # .number removes units
             # find index of second largest binding energy
+            # (largest is binding energy to self, which is infinite)
+            # .number removes units
             maxEb_index = numpy.argpartition(-Eb.number, 2)[1]
             maxEb = Eb.number[maxEb_index]
             partner = stars[maxEb_index]
@@ -175,9 +175,10 @@ def test_multiples(N, end_time, delta_t, n_workers,
                 binaries.append((star, partner))
 
         if len(binaries) > 0:
-            binding_energies = [x/kT for x in binding_energies]
-            print("Binding energies in kT:", binding_energies)
-            if numpy.min(binding_energies) > 0.1 and end_time < zero:
+            print("Binding energies:", binding_energies)
+            binding_energies_kT = [x/kT for x in binding_energies]
+            print("Binding energies in kT:", binding_energies_kT)
+            if end_time < zero:
                 end_time = time + (20 | nbody_system.time)
 
         metrics["times"].append(time)
