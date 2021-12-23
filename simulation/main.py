@@ -41,7 +41,7 @@ def scatterplot(stars, filename):
 
 def test_multiples(N, end_time, delta_t, n_workers,
                    use_gpu, use_gpu_code, accuracy_parameter,
-                   softening_length):
+                   softening_length, output_folder):
 
     print("end_time =", end_time)
     print("delta_t =", delta_t)
@@ -211,10 +211,10 @@ def test_multiples(N, end_time, delta_t, n_workers,
     print('')
     gravity.stop()
 
-    scatterplot(stars, "simulation/output/final_state.png")
+    scatterplot(stars, output_folder+"/final_state.png")
 
-    write_set_to_file(stars, "simulation/output/final_state.csv", "csv")
-    metrics_filename = "simulation/output/cluster_metrics.pkl"
+    write_set_to_file(stars, output_folder+"/final_state.csv", "csv")
+    metrics_filename = output_folder+"/cluster_metrics.pkl"
     pickle.dump(metrics, open(metrics_filename, "wb"))
 
 
@@ -229,6 +229,7 @@ if __name__ == '__main__':
     accuracy_parameter = 0.1
     softening_length = 0 | nbody_system.length
     random_seed = -1
+    output_folder = "simulation/output"
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "a:c:d:e:f:gGn:s:t:w:")
@@ -256,11 +257,13 @@ if __name__ == '__main__':
             t_end = float(a) | nbody_system.time
         elif o == "-w":
             n_workers = int(a)
+        elif o == "-o":
+            output_folder = a
         else:
             print("unexpected argument", o)
 
-    create_directory("simulation/output")
-    remove_file("simulation/output/snapshots.hdf5")
+    create_directory(output_folder)
+    remove_file(output_folder+"/snapshots.hdf5")
 
     if random_seed <= 0:
         numpy.random.seed()
@@ -271,4 +274,4 @@ if __name__ == '__main__':
     assert is_mpd_running()
     test_multiples(N, t_end, delta_t, n_workers,
                    use_gpu, use_gpu_code,
-                   accuracy_parameter, softening_length)
+                   accuracy_parameter, softening_length, output_folder)
