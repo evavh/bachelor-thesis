@@ -41,7 +41,7 @@ def scatterplot(stars, filename):
 
 def test_multiples(N, end_time, delta_t, n_workers,
                    use_gpu, use_gpu_code, accuracy_parameter,
-                   softening_length, output_folder):
+                   softening_length, output_folder, minimum_Eb_kT):
 
     print("end_time =", end_time)
     print("delta_t =", delta_t)
@@ -132,6 +132,11 @@ def test_multiples(N, end_time, delta_t, n_workers,
     stopping_condition = gravity.stopping_conditions.collision_detection
     stopping_condition.enable()
 
+    kT = 1/(6*N)
+    minimum_Eb = minimum_Eb_kT * kT
+    print("kT =", kT)
+    print("minimum Eb =", minimum_Eb, "=", minimum_Eb_kT, "kT")
+
     zero = 0 | nbody_system.time
     while True:
         time += delta_t
@@ -151,9 +156,6 @@ def test_multiples(N, end_time, delta_t, n_workers,
         channel.copy()
         channel.copy_attribute("index_in_code", "id")
 
-        kT = 1/(6*N)
-        minimal_binding_energy = 0.0001
-
         # Search for and print out bound pairs using a numpy-accelerated
         # N^2 search.
         G = nbody_system.G
@@ -171,7 +173,7 @@ def test_multiples(N, end_time, delta_t, n_workers,
             maxEb_index = numpy.argpartition(-Eb.number, 2)[1]
             maxEb = Eb.number[maxEb_index]
             partner = stars[maxEb_index]
-            if maxEb > minimal_binding_energy and star.id < partner.id:
+            if maxEb > minimum_Eb and star.id < partner.id:
                 binding_energies.append(maxEb)
                 binaries.append((star, partner))
 
@@ -231,9 +233,10 @@ if __name__ == '__main__':
     softening_length = 0 | nbody_system.length
     random_seed = -1
     output_folder = "simulation/output"
+    minimal_Eb_kT = 10
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:e:f:gGn:s:t:w:")
+        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:e:f:gGn:s:t:w:o:b:")
     except getopt.GetoptError as err:
         print(str(err))
         sys.exit(1)
@@ -260,6 +263,8 @@ if __name__ == '__main__':
             n_workers = int(a)
         elif o == "-o":
             output_folder = a
+        elif o == "-b":
+            minimal_Eb_kT = float(a)
         else:
             print("unexpected argument", o)
 
@@ -274,5 +279,5 @@ if __name__ == '__main__':
 
     assert is_mpd_running()
     test_multiples(N, t_end, delta_t, n_workers,
-                   use_gpu, use_gpu_code,
-                   accuracy_parameter, softening_length, output_folder)
+                   use_gpu, use_gpu_code, accuracy_parameter,
+                   softening_length, output_folder, minimal_Eb_kT)
