@@ -208,14 +208,15 @@ def test_multiples(N, end_time, delta_t, n_workers,
                           "simulation/output/snapshots.hdf5", "hdf5",
                           append_to_file=True)
 
+        metrics_filename = output_folder+"/cluster_metrics.pkl"
+        pickle.dump(metrics, open(metrics_filename, "wb"))
+
     print('')
     gravity.stop()
 
     scatterplot(stars, output_folder+"/final_state.png")
 
     write_set_to_file(stars, output_folder+"/final_state.csv", "csv")
-    metrics_filename = output_folder+"/cluster_metrics.pkl"
-    pickle.dump(metrics, open(metrics_filename, "wb"))
 
 
 if __name__ == '__main__':
