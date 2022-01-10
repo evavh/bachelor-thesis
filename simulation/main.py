@@ -139,6 +139,7 @@ def test_multiples(N, end_time, delta_t, n_workers,
 
     zero = 0 | nbody_system.time
     while True:
+        print("Starting integration at time", time)
         time += delta_t
 
         if end_time > zero and time >= end_time:
@@ -155,6 +156,8 @@ def test_multiples(N, end_time, delta_t, n_workers,
         # Copy values from the module to the set in memory.
         channel.copy()
         channel.copy_attribute("index_in_code", "id")
+
+        print("Finished integration, starting binary finding.")
 
         # Search for and print out bound pairs using a numpy-accelerated
         # N^2 search.
@@ -187,6 +190,8 @@ def test_multiples(N, end_time, delta_t, n_workers,
             if end_time < zero:
                 end_time = time + (20 | nbody_system.time)
 
+        print("Finished binary finding, starting filling metrics struct.")
+
         metrics["times"].append(time)
 
         metrics["rvir"].append(stars.virial_radius())
@@ -206,12 +211,18 @@ def test_multiples(N, end_time, delta_t, n_workers,
         metrics["kinetic_energy"].append(gravity.kinetic_energy)
         metrics["total_binary_energy"].append(gravity.get_binary_energy())
 
+        print("Finished filling metrics struct, starting writing snapshot.")
+
         write_set_to_file(stars.savepoint(time),
-                          "simulation/output/snapshots.hdf5", "hdf5",
+                          output_folder+"/snapshots.hdf5", "hdf5",
                           append_to_file=True)
+
+        print("Finished writing snapshot, starting pickling metrics.")
 
         metrics_filename = output_folder+"/cluster_metrics.pkl"
         pickle.dump(metrics, open(metrics_filename, "wb"))
+
+        print("Finished writing data to files, going to next loop")
 
     print('')
     gravity.stop()
