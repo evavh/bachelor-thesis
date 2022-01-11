@@ -17,6 +17,8 @@ def parse_arguments():
                         default="analysis/data/")
     parser.add_argument("-o", "--output", help="Directory to put output",
                         default="analysis/plots/")
+    parser.add_argument("--scatter", help="generate scatter plots.",
+                        action='store_true')
     return parser.parse_args()
 
 
@@ -51,19 +53,26 @@ if __name__ == '__main__':
     arguments = parse_arguments()
     input_dir = arguments.input
     output_dir = arguments.output
+    scatter = arguments.scatter
 
     create_directory(output_dir)
     create_directory(output_dir+"scatter")
     create_directory(input_dir)
 
     snapshots = read_set_from_file(input_dir+"snapshots.hdf5", "hdf5")
+    tmax = len(list(snapshots.history))
+    print(f"Loaded snapshots of {tmax} timesteps.")
     metrics = pickle.load(open(input_dir+"cluster_metrics.pkl", "rb"))
+    print("Loaded metrics:", list(metrics.keys()))
 
-    print("Loaded metrics:", metrics.keys())
+    print(f"The first binaries are: {metrics['first_binaries']}.")
+    print(f"Their energies are: {metrics['first_binary_energies_kT']}.")
+    print(f"They were found at t={metrics['first_binary_time']}.")
 
-    for stars in snapshots.history:
-        time = stars.get_timestamp()
-        print("t=", time, "length=", len(stars))
-        scatterplot(stars, time, output_dir)
+    if scatter:
+        for stars in snapshots.history:
+            time = stars.get_timestamp().number
+            print(f"Plotting t={time} out of {tmax}", end="\r")
+            scatterplot(stars, time, output_dir)
 
     radiiplot(metrics, output_dir)
