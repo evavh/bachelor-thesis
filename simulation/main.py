@@ -39,6 +39,27 @@ def scatterplot(stars, filename):
     pyplot.clf()
 
 
+def new_cluster_model(N, eps2):
+    print("making a Plummer model")
+    stars = new_plummer_model(N)
+
+    id = numpy.arange(N)
+    stars.id = id+1 | units.none
+
+    print("setting particle masses and radii")
+    if ADD_MASS_FUNCTION:
+        scaled_mass = new_salpeter_mass_distribution_nbody(N)
+        stars.mass = scaled_mass
+    stars.radius = 0.0 | nbody_system.length
+
+    print("centering stars")
+    stars.move_to_center()
+    print("scaling stars to virial equilibrium")
+    stars.scale_to_standard(smoothing_length_squared=eps2)
+
+    return stars
+
+
 def test_multiples(N, end_time, delta_t, n_workers,
                    use_gpu, use_gpu_code, accuracy_parameter,
                    softening_length, output_folder, minimum_Eb_kT):
@@ -73,26 +94,8 @@ def test_multiples(N, end_time, delta_t, n_workers,
         eps2 = softening_length*softening_length
 
     # -----------------------------------------------------------------
-
-    print("making a Plummer model")
-    stars = new_plummer_model(N)
-
-    id = numpy.arange(N)
-    stars.id = id+1 | units.none
-
-    print("setting particle masses and radii")
-    if ADD_MASS_FUNCTION:
-        scaled_mass = new_salpeter_mass_distribution_nbody(N)
-        stars.mass = scaled_mass
-    stars.radius = 0.0 | nbody_system.length
-
-    print("centering stars")
-    stars.move_to_center()
-    print("scaling stars to virial equilibrium")
-    stars.scale_to_standard(smoothing_length_squared=eps2)
-
+    stars = new_cluster_model(N, eps2)
     time = 0.0 | nbody_system.time
-
     # -----------------------------------------------------------------
 
     # Note that there are actually three GPU options to test:
