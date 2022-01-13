@@ -1,6 +1,7 @@
 from amuse.io import read_set_from_file
 from amuse.units import nbody_system
 from matplotlib import pyplot
+import numpy
 import pickle
 import os
 import argparse
@@ -26,15 +27,21 @@ def scatterplot(stars, first_binary, time, output_dir):
     x_of_stars = stars.x.value_in(nbody_system.length)
     y_of_stars = stars.y.value_in(nbody_system.length)
 
-    binary_stars_marked = stars[stars.id == first_binary[0].id or
-                                stars.id == first_binary[1].id]
-    print(binary_stars_marked)
+    colours = []
+    sizes = []
+    for star in stars:
+        if star.id == first_binary[0].id or star.id == first_binary[1].id:
+            colours.append('red')
+            sizes.append(10)
+        else:
+            colours.append('blue')
+            sizes.append(0.5)
 
-    pyplot.scatter(x_of_stars, y_of_stars, s=10*stars.mass/stars.mass.max(),
-                   c=binary_stars_marked)
+    pyplot.scatter(x_of_stars, y_of_stars, s=sizes,
+                   c=colours)
     pyplot.xlabel("x")
     pyplot.ylabel("y")
-    pyplot.savefig(output_dir+"scatter/"+str(time)+".png")
+    pyplot.savefig(output_dir+"scatter/"+str(time)+".svg", format='svg')
     pyplot.clf()
 
 
@@ -72,7 +79,9 @@ if __name__ == '__main__':
     print("Loaded metrics:", list(metrics.keys()))
 
     first_binaries = metrics['first_binaries']
-    print(f"The first binaries are: {first_binaries}.")
+    print("The first binaries are:")
+    for binary in first_binaries:
+        print(binary[0].id, ",", binary[1].id)
     print(f"Their energies are: {metrics['first_binary_energies_kT']}.")
     print(f"They were found at t={metrics['first_binary_time']}.")
 
