@@ -254,6 +254,7 @@ if __name__ == '__main__':
     softening_length = 0 | nbody_system.length
     random_seed = -1
     output_folder = "simulation/output"
+    snapshot_input = output_folder
     minimal_Eb_kT = 10
     start_time = None
 
@@ -285,6 +286,8 @@ if __name__ == '__main__':
             n_workers = int(a)
         elif o == "-o":
             output_folder = a
+        elif o == "-i":
+            snapshot_input = a
         elif o == "-b":
             minimal_Eb_kT = float(a)
         elif o == "-T":
