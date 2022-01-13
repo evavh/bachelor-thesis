@@ -60,7 +60,7 @@ def new_cluster_model(N, eps2):
     return stars
 
 
-def test_multiples(N, end_time, delta_t, n_workers,
+def test_multiples(N, end_time, delta_t, n_workers, start_time,
                    use_gpu, use_gpu_code, accuracy_parameter,
                    softening_length, output_folder, minimum_Eb_kT):
 
@@ -94,8 +94,11 @@ def test_multiples(N, end_time, delta_t, n_workers,
         eps2 = softening_length*softening_length
 
     # -----------------------------------------------------------------
-    stars = new_cluster_model(N, eps2)
-    time = 0.0 | nbody_system.time
+    if start_time is None:
+        stars = new_cluster_model(N, eps2)
+        time = 0.0 | nbody_system.time
+    else:
+        raise NotImplementedError
     # -----------------------------------------------------------------
 
     # Note that there are actually three GPU options to test:
@@ -252,9 +255,10 @@ if __name__ == '__main__':
     random_seed = -1
     output_folder = "simulation/output"
     minimal_Eb_kT = 10
+    start_time = None
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:e:f:gGn:s:t:w:o:b:")
+        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:e:f:gGn:s:t:w:o:b:T:")
     except getopt.GetoptError as err:
         print(str(err))
         sys.exit(1)
@@ -283,6 +287,8 @@ if __name__ == '__main__':
             output_folder = a
         elif o == "-b":
             minimal_Eb_kT = float(a)
+        elif o == "-T":
+            start_time = float(a)
         else:
             print("unexpected argument", o)
 
@@ -296,6 +302,6 @@ if __name__ == '__main__':
     print("random seed =", random_seed)
 
     assert is_mpd_running()
-    test_multiples(N, t_end, delta_t, n_workers,
+    test_multiples(N, t_end, delta_t, n_workers, start_time,
                    use_gpu, use_gpu_code, accuracy_parameter,
                    softening_length, output_folder, minimal_Eb_kT)
