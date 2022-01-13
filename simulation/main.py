@@ -60,11 +60,71 @@ def new_cluster_model(N, eps2):
     return stars
 
 
-def test_multiples(N, end_time, delta_t, n_workers, start_time,
-                   use_gpu, use_gpu_code, accuracy_parameter,
-                   softening_length, output_folder, minimum_Eb_kT):
+if __name__ == '__main__':
 
-    print("end_time =", end_time)
+    N = 100
+    t_end = -1 | nbody_system.time
+    delta_t = 1.0 | nbody_system.time
+    n_workers = 1
+    use_gpu = 0
+    use_gpu_code = 0
+    accuracy_parameter = 0.1
+    softening_length = 0 | nbody_system.length
+    random_seed = -1
+    output_folder = "simulation/output"
+    snapshot_input = output_folder
+    minimum_Eb_kT = 10
+    start_time = None
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:e:f:gGn:s:t:w:o:b:T:")
+    except getopt.GetoptError as err:
+        print(str(err))
+        sys.exit(1)
+
+    for o, a in opts:
+        if o == "-a":
+            accuracy_parameter = float(a)
+        elif o == "-d":
+            delta_t = float(a) | nbody_system.time
+        elif o == "-e":
+            softening_length = float(a) | nbody_system.length
+        elif o == "-g":
+            use_gpu = 1
+        elif o == "-G":
+            use_gpu = 1
+            use_gpu_code = 1
+        elif o == "-n":
+            N = int(a)
+        elif o == "-s":
+            random_seed = int(a)
+        elif o == "-t":
+            t_end = float(a) | nbody_system.time
+        elif o == "-w":
+            n_workers = int(a)
+        elif o == "-o":
+            output_folder = a
+        elif o == "-i":
+            snapshot_input = a
+        elif o == "-b":
+            minimum_Eb_kT = float(a)
+        elif o == "-T":
+            start_time = float(a)
+        else:
+            print("unexpected argument", o)
+
+    create_directory(output_folder)
+    remove_file(output_folder+"/snapshots.hdf5")
+
+    if random_seed <= 0:
+        numpy.random.seed()
+        random_seed = numpy.random.randint(1, pow(2, 31)-1)
+    numpy.random.seed(random_seed)
+    print("random seed =", random_seed)
+
+    assert is_mpd_running()
+
+    print("end_time =", t_end)
     print("delta_t =", delta_t)
     print("n_workers =", n_workers)
     print("use_gpu =", use_gpu)
@@ -131,7 +191,7 @@ def test_multiples(N, end_time, delta_t, n_workers, start_time,
 
     print('')
     print("number_of_stars =", N)
-    print("evolving to time =", end_time,
+    print("evolving to time =", t_end,
           "in steps of", delta_t)
 
     # Channel to copy values from the code to the set in memory.
@@ -150,7 +210,7 @@ def test_multiples(N, end_time, delta_t, n_workers, start_time,
         print("Starting integration at time", time)
         time += delta_t
 
-        if end_time > zero and time >= end_time:
+        if t_end > zero and time >= t_end:
             break
 
         while gravity.get_time() < time:
@@ -197,8 +257,8 @@ def test_multiples(N, end_time, delta_t, n_workers, start_time,
                 metrics["first_binaries"] = binaries
                 metrics["first_binary_energies_kT"] = binding_energies_kT
                 metrics["first_binary_time"] = time
-            if end_time < zero:
-                end_time = time + (20 | nbody_system.time)
+            if t_end < zero:
+                t_end = time + (20 | nbody_system.time)
 
         print("Finished binary finding, starting filling metrics struct.")
 
@@ -240,71 +300,3 @@ def test_multiples(N, end_time, delta_t, n_workers, start_time,
     scatterplot(stars, output_folder+"/final_state.png")
 
     write_set_to_file(stars, output_folder+"/final_state.csv", "csv")
-
-
-if __name__ == '__main__':
-
-    N = 100
-    t_end = -1 | nbody_system.time
-    delta_t = 1.0 | nbody_system.time
-    n_workers = 1
-    use_gpu = 0
-    use_gpu_code = 0
-    accuracy_parameter = 0.1
-    softening_length = 0 | nbody_system.length
-    random_seed = -1
-    output_folder = "simulation/output"
-    snapshot_input = output_folder
-    minimal_Eb_kT = 10
-    start_time = None
-
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:e:f:gGn:s:t:w:o:b:T:")
-    except getopt.GetoptError as err:
-        print(str(err))
-        sys.exit(1)
-
-    for o, a in opts:
-        if o == "-a":
-            accuracy_parameter = float(a)
-        elif o == "-d":
-            delta_t = float(a) | nbody_system.time
-        elif o == "-e":
-            softening_length = float(a) | nbody_system.length
-        elif o == "-g":
-            use_gpu = 1
-        elif o == "-G":
-            use_gpu = 1
-            use_gpu_code = 1
-        elif o == "-n":
-            N = int(a)
-        elif o == "-s":
-            random_seed = int(a)
-        elif o == "-t":
-            t_end = float(a) | nbody_system.time
-        elif o == "-w":
-            n_workers = int(a)
-        elif o == "-o":
-            output_folder = a
-        elif o == "-i":
-            snapshot_input = a
-        elif o == "-b":
-            minimal_Eb_kT = float(a)
-        elif o == "-T":
-            start_time = float(a)
-        else:
-            print("unexpected argument", o)
-
-    create_directory(output_folder)
-    remove_file(output_folder+"/snapshots.hdf5")
-
-    if random_seed <= 0:
-        numpy.random.seed()
-        random_seed = numpy.random.randint(1, pow(2, 31)-1)
-    numpy.random.seed(random_seed)
-    print("random seed =", random_seed)
-
-    assert is_mpd_running()
-    test_multiples(N, t_end, delta_t, n_workers, start_time,
-                   use_gpu, use_gpu_code, accuracy_parameter,
-                   softening_length, output_folder, minimal_Eb_kT)
