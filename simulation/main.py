@@ -77,7 +77,7 @@ if __name__ == '__main__':
     start_time = None
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:e:f:gGn:s:t:w:o:b:T:")
+        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:e:f:gGn:s:t:w:o:i:b:T:")
     except getopt.GetoptError as err:
         print(str(err))
         sys.exit(1)
