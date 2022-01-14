@@ -153,14 +153,15 @@ if __name__ == '__main__':
     else:
         eps2 = softening_length*softening_length
 
-    # -----------------------------------------------------------------
     if start_time is None:
         stars = new_cluster_model(N, eps2)
         time = 0.0 | nbody_system.time
     else:
         raise NotImplementedError
-    # -----------------------------------------------------------------
 
+    write_set_to_file(stars.savepoint(time),
+                      output_folder+"/snapshots.hdf5", "hdf5",
+                      append_to_file=True)
     # Note that there are actually three GPU options to test:
     #
     # 1. use the GPU code and allow GPU use (default)
