@@ -78,17 +78,19 @@ if __name__ == '__main__':
     metrics = pickle.load(open(input_dir+"cluster_metrics.pkl", "rb"))
     print("Loaded metrics:", list(metrics.keys()))
 
-    first_binaries = metrics['first_binaries']
-    print("The first binaries are:")
-    for binary in first_binaries:
-        print(binary[0].id, ",", binary[1].id)
-    print(f"Their energies are: {metrics['first_binary_energies_kT']}.")
-    print(f"They were found at t={metrics['first_binary_time']}.")
-
-    if scatter:
-        for stars in snapshots.history:
-            time = stars.get_timestamp().number
-            print(f"Plotting t={time} out of {tmax}", end="\r")
-            scatterplot(stars, first_binaries[0], time, output_dir)
+    if 'first_binaries' in metrics:
+        first_binaries = metrics['first_binaries']
+        print("The first binaries are:")
+        for binary in first_binaries:
+            print(binary[0].id, ",", binary[1].id)
+        print(f"Their energies are: {metrics['first_binary_energies_kT']}")
+        print(f"They were found at t={metrics['first_binary_time']}.")
+        if scatter:
+            for stars in snapshots.history:
+                time = stars.get_timestamp().number
+                print(f"Plotting t={time} out of {tmax}", end="\r")
+                scatterplot(stars, first_binaries[0], time, output_dir)
+    else:
+        print("No binaries found. Only plotting radii.")
 
     radiiplot(metrics, output_dir)
