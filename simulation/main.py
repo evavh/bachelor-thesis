@@ -11,7 +11,7 @@ from amuse.units import units
 from amuse.community.ph4.interface import ph4 as grav
 from amuse.ext.LagrangianRadii import LagrangianRadii
 
-from amuse.io import write_set_to_file
+from amuse.io import write_set_to_file, read_set_from_file
 from amuse.rfi.core import is_mpd_running
 
 from matplotlib import pyplot
@@ -60,10 +60,19 @@ def new_cluster_model(N, eps2):
     return stars
 
 
+def find_snapshot(snapshots, start_time):
+    for snapshot in snapshots.history:
+        time = snapshot.get_timestamp()
+        if time >= start_time:
+            return snapshot, time
+    raise Exception("Start time not found in snapshot file.")
+
+
 if __name__ == '__main__':
 
     N = 100
     t_end = -1 | nbody_system.time
+    start_time = -1 | nbody_system.time
     delta_t = 1.0 | nbody_system.time
     n_workers = 1
     use_gpu = 0
@@ -74,10 +83,10 @@ if __name__ == '__main__':
     output_folder = "simulation/output"
     snapshot_input = output_folder
     minimum_Eb_kT = 10
-    start_time = None
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "a:c:d:e:f:gGn:s:t:w:o:i:b:T:")
+        opts, args = getopt.getopt(sys.argv[1:],
+                                   "a:c:d:e:f:gGn:s:t:w:o:i:b:T:")
     except getopt.GetoptError as err:
         print(str(err))
         sys.exit(1)
@@ -100,6 +109,8 @@ if __name__ == '__main__':
             random_seed = int(a)
         elif o == "-t":
             t_end = float(a) | nbody_system.time
+        elif o == "-T":
+            start_time = float(a) | nbody_system.time
         elif o == "-w":
             n_workers = int(a)
         elif o == "-o":
@@ -108,8 +119,6 @@ if __name__ == '__main__':
             snapshot_input = a
         elif o == "-b":
             minimum_Eb_kT = float(a)
-        elif o == "-T":
-            start_time = float(a)
         else:
             print("unexpected argument", o)
 
@@ -153,11 +162,12 @@ if __name__ == '__main__':
     else:
         eps2 = softening_length*softening_length
 
-    if start_time is None:
+    if start_time == -1 | nbody_system.time:
         stars = new_cluster_model(N, eps2)
         time = 0.0 | nbody_system.time
     else:
-        raise NotImplementedError
+        snapshots = read_set_from_file(snapshot_input, 'hdf5')
+        stars, time = find_snapshot(snapshots, start_time)
 
     write_set_to_file(stars.savepoint(time),
                       output_folder+"/snapshots.hdf5", "hdf5",
