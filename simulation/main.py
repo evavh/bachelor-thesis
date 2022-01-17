@@ -75,14 +75,14 @@ if __name__ == '__main__':
     delta_t = 1.0 | nbody_system.time
     accuracy_parameter = 0.1
     softening_length = 0 | nbody_system.length
-    random_seed = -1
+    random_seed = None
     output_folder = "simulation/output"
     snapshot_input = output_folder
     minimum_Eb_kT = 10
 
     try:
         opts, args = getopt.getopt(sys.argv[1:],
-                                   "a:c:d:e:f:n:s:t:w:o:i:b:T:")
+                                   "a:d:e:n:s:t:T:o:i:b:")
     except getopt.GetoptError as err:
         print(str(err))
         sys.exit(1)
@@ -114,10 +114,14 @@ if __name__ == '__main__':
     create_directory(output_folder)
     remove_file(output_folder+"/snapshots.hdf5")
 
-    if random_seed <= 0:
-        numpy.random.seed()
-        random_seed = numpy.random.randint(1, pow(2, 31)-1)
-    numpy.random.seed(random_seed)
+    def set_random_seed(random_seed):
+        if random_seed is None:
+            numpy.random.seed()
+            random_seed = numpy.random.randint(1, pow(2, 31)-1)
+        numpy.random.seed(random_seed)
+        return random_seed
+
+    random_seed = set_random_seed(random_seed)
     print("random seed =", random_seed)
 
     assert is_mpd_running()
