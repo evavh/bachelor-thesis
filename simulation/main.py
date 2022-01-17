@@ -77,12 +77,13 @@ def find_snapshot(snapshots, start_time):
 
 
 if __name__ == '__main__':
+    ACCURACY_PARAMETER = 0.1
+    softening_length = 0 | nbody_system.length
+
     N = 100
     t_end = -1 | nbody_system.time
     start_time = -1 | nbody_system.time
     delta_t = 1.0 | nbody_system.time
-    accuracy_parameter = 0.1
-    softening_length = 0 | nbody_system.length
     random_seed = None
     output_folder = "simulation/output"
     snapshot_input = output_folder
@@ -90,15 +91,13 @@ if __name__ == '__main__':
 
     try:
         opts, args = getopt.getopt(sys.argv[1:],
-                                   "a:d:e:n:s:t:T:o:i:b:")
+                                   "d:e:n:s:t:T:o:i:b:")
     except getopt.GetoptError as err:
         print(str(err))
         sys.exit(1)
 
     for o, a in opts:
-        if o == "-a":
-            accuracy_parameter = float(a)
-        elif o == "-d":
+        if o == "-d":
             delta_t = float(a) | nbody_system.time
         elif o == "-e":
             softening_length = float(a) | nbody_system.length
@@ -166,7 +165,7 @@ if __name__ == '__main__':
     gravity.parameters.set_defaults()
     print("Set defaults")
 
-    gravity.parameters.timestep_parameter = accuracy_parameter
+    gravity.parameters.timestep_parameter = ACCURACY_PARAMETER
     gravity.parameters.epsilon_squared = eps2
     gravity.parameters.use_gpu = 0
 
