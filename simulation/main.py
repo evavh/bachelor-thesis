@@ -78,7 +78,7 @@ def find_snapshot(snapshots, start_time):
 
 if __name__ == '__main__':
     ACCURACY_PARAMETER = 0.1
-    eps2 = 0 | nbody_system.length**2
+    EPSILON_SQUARED = 0 | nbody_system.length**2
 
     N = 100
     t_end = -1 | nbody_system.time
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     binaries_found = False
 
     if start_time == -1 | nbody_system.time:
-        stars = new_cluster_model(N, eps2)
+        stars = new_cluster_model(N, EPSILON_SQUARED)
         time = 0.0 | nbody_system.time
     else:
         snapshots = read_set_from_file(snapshot_input, 'hdf5')
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     print("Set defaults")
 
     gravity.parameters.timestep_parameter = ACCURACY_PARAMETER
-    gravity.parameters.epsilon_squared = eps2
+    gravity.parameters.epsilon_squared = EPSILON_SQUARED
     gravity.parameters.use_gpu = 0
 
     print("adding particles")
