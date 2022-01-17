@@ -78,7 +78,7 @@ def find_snapshot(snapshots, start_time):
 
 if __name__ == '__main__':
     ACCURACY_PARAMETER = 0.1
-    softening_length = 0 | nbody_system.length
+    eps2 = 0 | nbody_system.length**2
 
     N = 100
     t_end = -1 | nbody_system.time
@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
     try:
         opts, args = getopt.getopt(sys.argv[1:],
-                                   "d:e:n:s:t:T:o:i:b:")
+                                   "d:n:s:t:T:o:i:b:")
     except getopt.GetoptError as err:
         print(str(err))
         sys.exit(1)
@@ -99,8 +99,6 @@ if __name__ == '__main__':
     for o, a in opts:
         if o == "-d":
             delta_t = float(a) | nbody_system.time
-        elif o == "-e":
-            softening_length = float(a) | nbody_system.length
         elif o == "-n":
             N = int(a)
         elif o == "-s":
@@ -140,12 +138,6 @@ if __name__ == '__main__':
                "total_binary_energy": []}
 
     binaries_found = False
-
-    if softening_length == -1 | nbody_system.length:
-        eps2 = 0.25*(float(N))**(-0.666667) \
-            | nbody_system.length**2
-    else:
-        eps2 = softening_length*softening_length
 
     if start_time == -1 | nbody_system.time:
         stars = new_cluster_model(N, eps2)
