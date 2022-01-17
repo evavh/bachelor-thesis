@@ -73,9 +73,6 @@ if __name__ == '__main__':
     t_end = -1 | nbody_system.time
     start_time = -1 | nbody_system.time
     delta_t = 1.0 | nbody_system.time
-    n_workers = 1
-    use_gpu = 0
-    use_gpu_code = 0
     accuracy_parameter = 0.1
     softening_length = 0 | nbody_system.length
     random_seed = -1
@@ -85,7 +82,7 @@ if __name__ == '__main__':
 
     try:
         opts, args = getopt.getopt(sys.argv[1:],
-                                   "a:c:d:e:f:gGn:s:t:w:o:i:b:T:")
+                                   "a:c:d:e:f:n:s:t:w:o:i:b:T:")
     except getopt.GetoptError as err:
         print(str(err))
         sys.exit(1)
@@ -97,11 +94,6 @@ if __name__ == '__main__':
             delta_t = float(a) | nbody_system.time
         elif o == "-e":
             softening_length = float(a) | nbody_system.length
-        elif o == "-g":
-            use_gpu = 1
-        elif o == "-G":
-            use_gpu = 1
-            use_gpu_code = 1
         elif o == "-n":
             N = int(a)
         elif o == "-s":
@@ -110,8 +102,6 @@ if __name__ == '__main__':
             t_end = float(a) | nbody_system.time
         elif o == "-T":
             start_time = float(a) | nbody_system.time
-        elif o == "-w":
-            n_workers = int(a)
         elif o == "-o":
             output_folder = a
         elif o == "-i":
@@ -163,20 +153,8 @@ if __name__ == '__main__':
     write_set_to_file(stars.savepoint(time),
                       output_folder+"/snapshots.hdf5", "hdf5",
                       append_to_file=True)
-    # Note that there are actually three GPU options to test:
-    #
-    # 1. use the GPU code and allow GPU use (default)
-    # 2. use the GPU code but disable GPU use (-g)
-    # 3. use the non-GPU code (-G)
 
-    if use_gpu_code == 1:
-        try:
-            gravity = grav(number_of_workers=n_workers,
-                           redirection="none", mode="gpu")
-        except:
-            gravity = grav(number_of_workers=n_workers, redirection="none")
-    else:
-        gravity = grav(number_of_workers=n_workers, redirection="none")
+    gravity = grav(number_of_workers=1, redirection="none")
 
     gravity.initialize_code()
     print("Initialized code")
@@ -185,7 +163,7 @@ if __name__ == '__main__':
 
     gravity.parameters.timestep_parameter = accuracy_parameter
     gravity.parameters.epsilon_squared = eps2
-    gravity.parameters.use_gpu = use_gpu
+    gravity.parameters.use_gpu = 0
 
     print("adding particles")
     gravity.particles.add_particles(stars)
