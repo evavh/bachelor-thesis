@@ -29,6 +29,14 @@ def remove_file(filename):
         os.remove(filename)
 
 
+def set_random_seed(random_seed):
+    if random_seed is None:
+        numpy.random.seed()
+        random_seed = numpy.random.randint(1, pow(2, 31)-1)
+    numpy.random.seed(random_seed)
+    return random_seed
+
+
 def scatterplot(stars, filename):
     pyplot.scatter(stars.x.value_in(nbody_system.length),
                    stars.y.value_in(nbody_system.length),
@@ -113,13 +121,6 @@ if __name__ == '__main__':
 
     create_directory(output_folder)
     remove_file(output_folder+"/snapshots.hdf5")
-
-    def set_random_seed(random_seed):
-        if random_seed is None:
-            numpy.random.seed()
-            random_seed = numpy.random.randint(1, pow(2, 31)-1)
-        numpy.random.seed(random_seed)
-        return random_seed
 
     random_seed = set_random_seed(random_seed)
     print("random seed =", random_seed)
