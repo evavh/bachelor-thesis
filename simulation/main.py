@@ -1,6 +1,7 @@
 import sys
 import numpy
 import getopt
+import argparse
 import os
 import pickle
 
@@ -17,6 +18,47 @@ from amuse.rfi.core import is_mpd_running
 from matplotlib import pyplot
 
 ADD_MASS_FUNCTION = False
+
+
+def parse_arguments():
+    N = 100
+    t_end = -1 | nbody_system.time
+    start_time = -1 | nbody_system.time
+    delta_t = 1.0 | nbody_system.time
+    random_seed = None
+    output_folder = "simulation/output"
+    snapshot_input = output_folder
+    minimum_Eb_kT = 10
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],
+                                   "d:n:s:t:T:o:i:b:")
+    except getopt.GetoptError as err:
+        print(str(err))
+        sys.exit(1)
+
+    for o, a in opts:
+        if o == "-d":
+            delta_t = float(a) | nbody_system.time
+        elif o == "-n":
+            N = int(a)
+        elif o == "-s":
+            random_seed = int(a)
+        elif o == "-t":
+            t_end = float(a) | nbody_system.time
+        elif o == "-T":
+            start_time = float(a) | nbody_system.time
+        elif o == "-o":
+            output_folder = a
+        elif o == "-i":
+            snapshot_input = a
+        elif o == "-b":
+            minimum_Eb_kT = float(a)
+        else:
+            print("unexpected argument", o)
+
+    return delta_t, N, random_seed, t_end, start_time, output_folder,\
+        snapshot_input, minimum_Eb_kT
 
 
 def create_directory(directory_name):
@@ -80,41 +122,8 @@ if __name__ == '__main__':
     ACCURACY_PARAMETER = 0.1
     EPSILON_SQUARED = 0 | nbody_system.length**2
 
-    N = 100
-    t_end = -1 | nbody_system.time
-    start_time = -1 | nbody_system.time
-    delta_t = 1.0 | nbody_system.time
-    random_seed = None
-    output_folder = "simulation/output"
-    snapshot_input = output_folder
-    minimum_Eb_kT = 10
-
-    try:
-        opts, args = getopt.getopt(sys.argv[1:],
-                                   "d:n:s:t:T:o:i:b:")
-    except getopt.GetoptError as err:
-        print(str(err))
-        sys.exit(1)
-
-    for o, a in opts:
-        if o == "-d":
-            delta_t = float(a) | nbody_system.time
-        elif o == "-n":
-            N = int(a)
-        elif o == "-s":
-            random_seed = int(a)
-        elif o == "-t":
-            t_end = float(a) | nbody_system.time
-        elif o == "-T":
-            start_time = float(a) | nbody_system.time
-        elif o == "-o":
-            output_folder = a
-        elif o == "-i":
-            snapshot_input = a
-        elif o == "-b":
-            minimum_Eb_kT = float(a)
-        else:
-            print("unexpected argument", o)
+    delta_t, N, random_seed, t_end, start_time, output_folder,\
+        snapshot_input, minimum_Eb_kT = parse_arguments()
 
     create_directory(output_folder)
     remove_file(output_folder+"/snapshots.hdf5")
