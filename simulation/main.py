@@ -69,7 +69,6 @@ def find_snapshot(snapshots, start_time):
 
 
 if __name__ == '__main__':
-
     N = 100
     t_end = -1 | nbody_system.time
     start_time = -1 | nbody_system.time
@@ -133,12 +132,6 @@ if __name__ == '__main__':
 
     assert is_mpd_running()
 
-    print("end_time =", t_end)
-    print("delta_t =", delta_t)
-    print("n_workers =", n_workers)
-    print("use_gpu =", use_gpu)
-    print("\ninitializing the gravity module")
-
     metrics = {"N": N,
                "times": [] | nbody_system.time,
                "rvir": [] | nbody_system.length,
@@ -153,8 +146,6 @@ if __name__ == '__main__':
                "total_binary_energy": []}
 
     binaries_found = False
-
-    # -----------------------------------------------------------------
 
     if softening_length == -1 | nbody_system.length:
         eps2 = 0.25*(float(N))**(-0.666667) \
