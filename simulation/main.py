@@ -196,10 +196,12 @@ if __name__ == '__main__':
     params.random_seed = set_random_seed(params.random_seed)
     print("random seed =", params.random_seed)
 
+    params_filename = params.output_folder+"/parameters.pkl"
+    pickle.dump(params, open(params_filename, "wb"))
+
     assert is_mpd_running()
 
-    metrics = {"N": params.n,
-               "times": [] | nbody_system.time,
+    metrics = {"times": [] | nbody_system.time,
                "rvir": [] | nbody_system.length,
                "rcore": [] | nbody_system.length,
                "r10pc": [] | nbody_system.length,

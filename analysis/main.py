@@ -75,6 +75,10 @@ if __name__ == '__main__':
     snapshots = read_set_from_file(input_dir+"snapshots.hdf5", "hdf5")
     tmax = len(list(snapshots.history))
     print(f"Loaded snapshots of {tmax} timesteps.")
+
+    params = pickle.load(open(input_dir+"parameters.pkl", "rb"))
+    print("Loaded parameters:", list(vars(params).keys()))
+
     metrics = pickle.load(open(input_dir+"cluster_metrics.pkl", "rb"))
     print("Loaded metrics:", list(metrics.keys()))
 
