@@ -16,8 +16,6 @@ from amuse.rfi.core import is_mpd_running
 
 from matplotlib import pyplot
 
-ADD_MASS_FUNCTION = False
-
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -96,10 +94,7 @@ def new_cluster_model(N, eps2):
     id = numpy.arange(N)
     stars.id = id+1 | units.none
 
-    print("setting particle masses and radii")
-    if ADD_MASS_FUNCTION:
-        scaled_mass = new_salpeter_mass_distribution_nbody(N)
-        stars.mass = scaled_mass
+    print("setting particle  radii")
     stars.radius = 0.0 | nbody_system.length
 
     print("centering stars")
@@ -196,8 +191,8 @@ def update_metrics(metrics, time, stars, gravity):
 
 
 if __name__ == '__main__':
-    ACCURACY_PARAMETER = 0.1
-    EPSILON_SQUARED = 0 | nbody_system.length**2
+    CONSTS = {'accuracy': 0.1,
+              'epsilon_squared': 0 | nbody_system.length**2}
 
     params = parse_arguments()
 
@@ -210,19 +205,23 @@ if __name__ == '__main__':
     params_filename = params.output_folder+"/parameters.pkl"
     pickle.dump(params, open(params_filename, "wb"))
 
+    consts_filename = params.output_folder+"/constants.pkl"
+    pickle.dump(CONSTS, open(consts_filename, "wb"))
+
     assert is_mpd_running()
 
     metrics = initialize_metrics()
 
     binaries_found = False
 
-    stars, time = initialize_stars(params, EPSILON_SQUARED)
+    stars, time = initialize_stars(params, CONSTS['epsilon_squared'])
 
     write_set_to_file(stars.savepoint(time),
                       params.output_folder+"/snapshots.hdf5", "hdf5",
                       append_to_file=True)
 
-    gravity = setup_integrator(stars, ACCURACY_PARAMETER, EPSILON_SQUARED)
+    gravity = setup_integrator(stars, CONSTS['accuracy'],
+                               CONSTS['epsilon_squared'])
 
     print('')
     print("number_of_stars =", params.n)

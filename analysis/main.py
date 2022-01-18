@@ -76,6 +76,9 @@ if __name__ == '__main__':
     tmax = len(list(snapshots.history))
     print(f"Loaded snapshots of {tmax} timesteps.")
 
+    consts = pickle.load(open(input_dir+"constants.pkl", "rb"))
+    print("Loaded constants:", list(consts.keys()))
+
     params = pickle.load(open(input_dir+"parameters.pkl", "rb"))
     print("Loaded parameters:", list(vars(params).keys()))
 
