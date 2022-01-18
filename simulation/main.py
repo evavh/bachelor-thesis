@@ -161,6 +161,29 @@ def find_binaries(stars, minimum_Eb):
     return binaries, binding_energies
 
 
+def update_metrics(metrics, time, stars, gravity):
+    metrics["times"].append(time)
+
+    metrics["rvir"].append(stars.virial_radius())
+
+    Rl = LagrangianRadii(stars, massf=[0.1, 0.5, 1.0] | units.none)
+    metrics["r10pc"].append(Rl[0])
+    metrics["r50pc"].append(Rl[1])
+
+    density_centre, core_radius, core_density = \
+        gravity.particles.densitycentre_coreradius_coredens()
+    metrics["density_centre"].append(density_centre)
+    metrics["rcore"].append(core_radius)
+    metrics["core_density"].append(core_density)
+
+    metrics["total_mass"].append(gravity.total_mass)
+    metrics["potential_energy"].append(gravity.potential_energy)
+    metrics["kinetic_energy"].append(gravity.kinetic_energy)
+    metrics["total_binary_energy"].append(gravity.get_binary_energy())
+
+    return metrics
+
+
 if __name__ == '__main__':
     ACCURACY_PARAMETER = 0.1
     EPSILON_SQUARED = 0 | nbody_system.length**2
@@ -252,24 +275,7 @@ if __name__ == '__main__':
 
         print("Finished binary finding, starting filling metrics struct.")
 
-        metrics["times"].append(time)
-
-        metrics["rvir"].append(stars.virial_radius())
-
-        Rl = LagrangianRadii(stars, massf=[0.1, 0.5, 1.0] | units.none)
-        metrics["r10pc"].append(Rl[0])
-        metrics["r50pc"].append(Rl[1])
-
-        density_centre, core_radius, core_density = \
-            gravity.particles.densitycentre_coreradius_coredens()
-        metrics["density_centre"].append(density_centre)
-        metrics["rcore"].append(core_radius)
-        metrics["core_density"].append(core_density)
-
-        metrics["total_mass"].append(gravity.total_mass)
-        metrics["potential_energy"].append(gravity.potential_energy)
-        metrics["kinetic_energy"].append(gravity.kinetic_energy)
-        metrics["total_binary_energy"].append(gravity.get_binary_energy())
+        metrics = update_metrics(metrics, time, stars, gravity)
 
         print("Finished filling metrics struct, starting writing snapshot.")
 
