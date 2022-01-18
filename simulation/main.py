@@ -107,6 +107,17 @@ def find_snapshot(snapshots, start_time):
     raise Exception("Start time not found in snapshot file.")
 
 
+def initialize_stars(params, EPSILON_SQUARED):
+    if params.start_time is None:
+        stars = new_cluster_model(params.n, EPSILON_SQUARED)
+        time = 0.0 | nbody_system.time
+    else:
+        snapshots = read_set_from_file(params.snapshot_input, 'hdf5')
+        stars, time = find_snapshot(snapshots, params.start_time)
+
+    return stars, time
+
+
 if __name__ == '__main__':
     ACCURACY_PARAMETER = 0.1
     EPSILON_SQUARED = 0 | nbody_system.length**2
@@ -136,12 +147,7 @@ if __name__ == '__main__':
 
     binaries_found = False
 
-    if params.start_time is None:
-        stars = new_cluster_model(params.n, EPSILON_SQUARED)
-        time = 0.0 | nbody_system.time
-    else:
-        snapshots = read_set_from_file(params.snapshot_input, 'hdf5')
-        stars, time = find_snapshot(snapshots, params.start_time)
+    stars, time = initialize_stars(params, EPSILON_SQUARED)
 
     write_set_to_file(stars.savepoint(time),
                       params.output_folder+"/snapshots.hdf5", "hdf5",
