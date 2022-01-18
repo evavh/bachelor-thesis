@@ -109,25 +109,17 @@ if __name__ == '__main__':
     ACCURACY_PARAMETER = 0.1
     EPSILON_SQUARED = 0 | nbody_system.length**2
 
-    parameters = parse_arguments()
-    delta_t = parameters.delta_t
-    N = parameters.n
-    random_seed = parameters.random_seed
-    t_end = parameters.t_end
-    start_time = parameters.start_time
-    output_folder = parameters.output_folder
-    snapshot_input = parameters.snapshot_input
-    minimum_Eb_kT = parameters.minimum_Eb_kT
+    params = parse_arguments()
 
-    create_directory(output_folder)
-    remove_file(output_folder+"/snapshots.hdf5")
+    create_directory(params.output_folder)
+    remove_file(params.output_folder+"/snapshots.hdf5")
 
-    random_seed = set_random_seed(random_seed)
-    print("random seed =", random_seed)
+    params.random_seed = set_random_seed(params.random_seed)
+    print("random seed =", params.random_seed)
 
     assert is_mpd_running()
 
-    metrics = {"N": N,
+    metrics = {"N": params.n,
                "times": [] | nbody_system.time,
                "rvir": [] | nbody_system.length,
                "rcore": [] | nbody_system.length,
@@ -142,15 +134,15 @@ if __name__ == '__main__':
 
     binaries_found = False
 
-    if start_time == -1 | nbody_system.time:
-        stars = new_cluster_model(N, EPSILON_SQUARED)
+    if params.start_time == -1 | nbody_system.time:
+        stars = new_cluster_model(params.n, EPSILON_SQUARED)
         time = 0.0 | nbody_system.time
     else:
-        snapshots = read_set_from_file(snapshot_input, 'hdf5')
-        stars, time = find_snapshot(snapshots, start_time)
+        snapshots = read_set_from_file(params.snapshot_input, 'hdf5')
+        stars, time = find_snapshot(snapshots, params.start_time)
 
     write_set_to_file(stars.savepoint(time),
-                      output_folder+"/snapshots.hdf5", "hdf5",
+                      params.output_folder+"/snapshots.hdf5", "hdf5",
                       append_to_file=True)
 
     gravity = grav(number_of_workers=1, redirection="none")
@@ -169,9 +161,9 @@ if __name__ == '__main__':
     gravity.commit_particles()
 
     print('')
-    print("number_of_stars =", N)
-    print("evolving to time =", t_end,
-          "in steps of", delta_t)
+    print("number_of_stars =", params.n)
+    print("evolving to time =", params.t_end,
+          "in steps of", params.delta_t)
 
     # Channel to copy values from the code to the set in memory.
     channel = gravity.particles.new_channel_to(stars)
@@ -179,17 +171,17 @@ if __name__ == '__main__':
     stopping_condition = gravity.stopping_conditions.collision_detection
     stopping_condition.enable()
 
-    kT = 1/(6*N)
-    minimum_Eb = minimum_Eb_kT * kT
+    kT = 1/(6*params.n)
+    minimum_Eb = params.minimum_Eb_kT * kT
     print("kT =", kT)
-    print("minimum Eb =", minimum_Eb, "=", minimum_Eb_kT, "kT")
+    print("minimum Eb =", minimum_Eb, "=", params.minimum_Eb_kT, "kT")
 
     zero = 0 | nbody_system.time
     while True:
         print("Starting integration at time", time)
-        time += delta_t
+        time += params.delta_t
 
-        if t_end > zero and time >= t_end:
+        if params.t_end > zero and time >= params.t_end:
             break
 
         while gravity.get_time() < time:
@@ -236,8 +228,8 @@ if __name__ == '__main__':
                 metrics["first_binaries"] = binaries
                 metrics["first_binary_energies_kT"] = binding_energies_kT
                 metrics["first_binary_time"] = time
-            if t_end < zero:
-                t_end = time + (20 | nbody_system.time)
+            if params.t_end < zero:
+                params.t_end = time + (20 | nbody_system.time)
 
         print("Finished binary finding, starting filling metrics struct.")
 
@@ -263,12 +255,12 @@ if __name__ == '__main__':
         print("Finished filling metrics struct, starting writing snapshot.")
 
         write_set_to_file(stars.savepoint(time),
-                          output_folder+"/snapshots.hdf5", "hdf5",
+                          params.output_folder+"/snapshots.hdf5", "hdf5",
                           append_to_file=True)
 
         print("Finished writing snapshot, starting pickling metrics.")
 
-        metrics_filename = output_folder+"/cluster_metrics.pkl"
+        metrics_filename = params.output_folder+"/cluster_metrics.pkl"
         pickle.dump(metrics, open(metrics_filename, "wb"))
 
         print("Finished writing data to files, going to next loop")
@@ -276,6 +268,6 @@ if __name__ == '__main__':
     print('')
     gravity.stop()
 
-    scatterplot(stars, output_folder+"/final_state.png")
+    scatterplot(stars, params.output_folder+"/final_state.png")
 
-    write_set_to_file(stars, output_folder+"/final_state.csv", "csv")
+    write_set_to_file(stars, params.output_folder+"/final_state.csv", "csv")
