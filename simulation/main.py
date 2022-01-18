@@ -137,6 +137,30 @@ def setup_integrator(stars, ACCURACY_PARAMETER, EPSILON_SQUARED):
     return gravity
 
 
+def find_binaries(stars, minimum_Eb):
+    G = nbody_system.G
+    binding_energies = []
+    binaries = []
+
+    for star in stars:
+        mu = star.mass*stars.mass/(star.mass+stars.mass)
+        dr = (stars.position - star.position).lengths()
+        dv = (stars.velocity - star.velocity).lengths()
+        Eb = G*star.mass*stars.mass/dr - 0.5*mu*dv*dv
+
+        # find index of second largest binding energy
+        # (largest is binding energy to self, which is infinite)
+        # .number removes units
+        maxEb_index = numpy.argpartition(-Eb.number, 2)[1]
+        maxEb = Eb.number[maxEb_index]
+        partner = stars[maxEb_index]
+        if maxEb > minimum_Eb and star.id < partner.id:
+            binding_energies.append(maxEb)
+            binaries.append((star, partner))
+
+    return binaries, binding_energies
+
+
 if __name__ == '__main__':
     ACCURACY_PARAMETER = 0.1
     EPSILON_SQUARED = 0 | nbody_system.length**2
@@ -212,26 +236,7 @@ if __name__ == '__main__':
 
         print("Finished integration, starting binary finding.")
 
-        # Search for and print out bound pairs using a numpy-accelerated
-        # N^2 search.
-        G = nbody_system.G
-        binding_energies = []
-        binaries = []
-        for star in stars:
-            mu = star.mass*stars.mass/(star.mass+stars.mass)
-            dr = (stars.position - star.position).lengths()
-            dv = (stars.velocity - star.velocity).lengths()
-            Eb = G*star.mass*stars.mass/dr - 0.5*mu*dv*dv
-
-            # find index of second largest binding energy
-            # (largest is binding energy to self, which is infinite)
-            # .number removes units
-            maxEb_index = numpy.argpartition(-Eb.number, 2)[1]
-            maxEb = Eb.number[maxEb_index]
-            partner = stars[maxEb_index]
-            if maxEb > minimum_Eb and star.id < partner.id:
-                binding_energies.append(maxEb)
-                binaries.append((star, partner))
+        binaries, binding_energies = find_binaries(stars, minimum_Eb)
 
         if len(binaries) > 0:
             print("Binding energies:", binding_energies)
