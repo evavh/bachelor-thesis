@@ -118,6 +118,25 @@ def initialize_stars(params, EPSILON_SQUARED):
     return stars, time
 
 
+def setup_integrator(stars, ACCURACY_PARAMETER, EPSILON_SQUARED):
+    gravity = grav(number_of_workers=1, redirection="none")
+
+    gravity.initialize_code()
+    print("Initialized code")
+    gravity.parameters.set_defaults()
+    print("Set defaults")
+
+    gravity.parameters.timestep_parameter = ACCURACY_PARAMETER
+    gravity.parameters.epsilon_squared = EPSILON_SQUARED
+    gravity.parameters.use_gpu = 0
+
+    print("adding particles")
+    gravity.particles.add_particles(stars)
+    gravity.commit_particles()
+
+    return gravity
+
+
 if __name__ == '__main__':
     ACCURACY_PARAMETER = 0.1
     EPSILON_SQUARED = 0 | nbody_system.length**2
@@ -153,20 +172,7 @@ if __name__ == '__main__':
                       params.output_folder+"/snapshots.hdf5", "hdf5",
                       append_to_file=True)
 
-    gravity = grav(number_of_workers=1, redirection="none")
-
-    gravity.initialize_code()
-    print("Initialized code")
-    gravity.parameters.set_defaults()
-    print("Set defaults")
-
-    gravity.parameters.timestep_parameter = ACCURACY_PARAMETER
-    gravity.parameters.epsilon_squared = EPSILON_SQUARED
-    gravity.parameters.use_gpu = 0
-
-    print("adding particles")
-    gravity.particles.add_particles(stars)
-    gravity.commit_particles()
+    gravity = setup_integrator(stars, ACCURACY_PARAMETER, EPSILON_SQUARED)
 
     print('')
     print("number_of_stars =", params.n)
