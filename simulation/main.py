@@ -21,44 +21,31 @@ ADD_MASS_FUNCTION = False
 
 
 def parse_arguments():
-    N = 100
-    t_end = -1 | nbody_system.time
-    start_time = -1 | nbody_system.time
-    delta_t = 1.0 | nbody_system.time
-    random_seed = None
-    output_folder = "simulation/output"
-    snapshot_input = output_folder
-    minimum_Eb_kT = 10
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--delta_t", help="time between snapshots",
+                        default=1.0, type=float)
+    parser.add_argument("-n", help="number of stars to simulate",
+                        default=100, type=int)
+    parser.add_argument("-s", "--random_seed", help="random number seed",
+                        default=None, type=int)
+    parser.add_argument("-t", "--t_end", help="time to force end the sim",
+                        default=-1, type=float)
+    parser.add_argument("-T", "--start_time", help="snapshot time to load",
+                        default=-1, type=float)
+    parser.add_argument("-o", "--output_folder", help="where to put output",
+                        default="simulation/output", type=str)
+    parser.add_argument("-i", "--snapshot_input", help="snaps to start from",
+                        default="simulation/output", type=str)
+    parser.add_argument("-b", "--minimum_Eb_kT", help="minimum binding E in kT",
+                        default=10, type=float)
 
-    try:
-        opts, args = getopt.getopt(sys.argv[1:],
-                                   "d:n:s:t:T:o:i:b:")
-    except getopt.GetoptError as err:
-        print(str(err))
-        sys.exit(1)
+    parameters = parser.parse_args()
 
-    for o, a in opts:
-        if o == "-d":
-            delta_t = float(a) | nbody_system.time
-        elif o == "-n":
-            N = int(a)
-        elif o == "-s":
-            random_seed = int(a)
-        elif o == "-t":
-            t_end = float(a) | nbody_system.time
-        elif o == "-T":
-            start_time = float(a) | nbody_system.time
-        elif o == "-o":
-            output_folder = a
-        elif o == "-i":
-            snapshot_input = a
-        elif o == "-b":
-            minimum_Eb_kT = float(a)
-        else:
-            print("unexpected argument", o)
+    parameters.delta_t = parameters.delta_t | nbody_system.time
+    parameters.t_end = parameters.t_end | nbody_system.time
+    parameters.start_time = parameters.start_time | nbody_system.time
 
-    return delta_t, N, random_seed, t_end, start_time, output_folder,\
-        snapshot_input, minimum_Eb_kT
+    return parameters
 
 
 def create_directory(directory_name):
@@ -122,8 +109,15 @@ if __name__ == '__main__':
     ACCURACY_PARAMETER = 0.1
     EPSILON_SQUARED = 0 | nbody_system.length**2
 
-    delta_t, N, random_seed, t_end, start_time, output_folder,\
-        snapshot_input, minimum_Eb_kT = parse_arguments()
+    parameters = parse_arguments()
+    delta_t = parameters.delta_t
+    N = parameters.n
+    random_seed = parameters.random_seed
+    t_end = parameters.t_end
+    start_time = parameters.start_time
+    output_folder = parameters.output_folder
+    snapshot_input = parameters.snapshot_input
+    minimum_Eb_kT = parameters.minimum_Eb_kT
 
     create_directory(output_folder)
     remove_file(output_folder+"/snapshots.hdf5")
