@@ -29,21 +29,23 @@ def parse_arguments():
     parser.add_argument("-s", "--random_seed", help="random number seed",
                         default=None, type=int)
     parser.add_argument("-t", "--t_end", help="time to force end the sim",
-                        default=-1, type=float)
+                        default=None, type=float)
     parser.add_argument("-T", "--start_time", help="snapshot time to load",
-                        default=-1, type=float)
+                        default=None, type=float)
     parser.add_argument("-o", "--output_folder", help="where to put output",
                         default="simulation/output", type=str)
     parser.add_argument("-i", "--snapshot_input", help="snaps to start from",
-                        default="simulation/output", type=str)
+                        default=None, type=str)
     parser.add_argument("-b", "--minimum_Eb_kT", help="minimum binding E in kT",
                         default=10, type=float)
 
     parameters = parser.parse_args()
 
     parameters.delta_t = parameters.delta_t | nbody_system.time
-    parameters.t_end = parameters.t_end | nbody_system.time
-    parameters.start_time = parameters.start_time | nbody_system.time
+    if parameters.t_end is not None:
+        parameters.t_end = parameters.t_end | nbody_system.time
+    if parameters.start_time is not None:
+        parameters.start_time = parameters.start_time | nbody_system.time
 
     return parameters
 
@@ -134,7 +136,7 @@ if __name__ == '__main__':
 
     binaries_found = False
 
-    if params.start_time == -1 | nbody_system.time:
+    if params.start_time is None:
         stars = new_cluster_model(params.n, EPSILON_SQUARED)
         time = 0.0 | nbody_system.time
     else:
@@ -181,7 +183,7 @@ if __name__ == '__main__':
         print("Starting integration at time", time)
         time += params.delta_t
 
-        if params.t_end > zero and time >= params.t_end:
+        if params.t_end is not None and time >= params.t_end:
             break
 
         while gravity.get_time() < time:
@@ -228,7 +230,7 @@ if __name__ == '__main__':
                 metrics["first_binaries"] = binaries
                 metrics["first_binary_energies_kT"] = binding_energies_kT
                 metrics["first_binary_time"] = time
-            if params.t_end < zero:
+            if params.t_end is None:
                 params.t_end = time + (20 | nbody_system.time)
 
         print("Finished binary finding, starting filling metrics struct.")
