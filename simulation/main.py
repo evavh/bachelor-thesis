@@ -1,9 +1,8 @@
-import sys
 import numpy
-import getopt
 import argparse
 import os
 import pickle
+import collections
 
 from amuse.ic.plummer import new_plummer_model
 from amuse.ic.salpeter import new_salpeter_mass_distribution_nbody
@@ -66,6 +65,18 @@ def set_random_seed(random_seed):
         random_seed = numpy.random.randint(1, pow(2, 31)-1)
     numpy.random.seed(random_seed)
     return random_seed
+
+
+def initialize_metrics():
+    metrics = collections.defaultdict(list)
+
+    metrics['times'] = [] | nbody_system.time
+    metrics['rvir'] = [] | nbody_system.length
+    metrics['rcore'] = [] | nbody_system.length
+    metrics['r10pc'] = [] | nbody_system.length
+    metrics['r50pc'] = [] | nbody_system.length
+
+    return metrics
 
 
 def scatterplot(stars, filename):
@@ -201,17 +212,7 @@ if __name__ == '__main__':
 
     assert is_mpd_running()
 
-    metrics = {"times": [] | nbody_system.time,
-               "rvir": [] | nbody_system.length,
-               "rcore": [] | nbody_system.length,
-               "r10pc": [] | nbody_system.length,
-               "r50pc": [] | nbody_system.length,
-               "density_centre": [],
-               "core_density": [],
-               "total_mass": [],
-               "potential_energy": [],
-               "kinetic_energy": [],
-               "total_binary_energy": []}
+    metrics = initialize_metrics()
 
     binaries_found = False
 
