@@ -107,9 +107,9 @@ def find_snapshot(snapshots, start_time):
     raise Exception("Start time not found in snapshot file.")
 
 
-def initialize_stars(params, EPSILON_SQUARED):
+def initialize_stars(params, CONSTS):
     if params.start_time is None:
-        stars = new_cluster_model(params.n, EPSILON_SQUARED)
+        stars = new_cluster_model(params.n, CONSTS['epsilon_squared'])
         time = 0.0 | nbody_system.time
     else:
         snapshots = read_set_from_file(params.snapshot_input, 'hdf5')
@@ -118,14 +118,14 @@ def initialize_stars(params, EPSILON_SQUARED):
     return stars, time
 
 
-def setup_integrator(stars, ACCURACY_PARAMETER, EPSILON_SQUARED):
+def setup_integrator(stars, CONSTS):
     gravity = grav(number_of_workers=1, redirection="none")
 
     gravity.initialize_code()
     gravity.parameters.set_defaults()
 
-    gravity.parameters.timestep_parameter = ACCURACY_PARAMETER
-    gravity.parameters.epsilon_squared = EPSILON_SQUARED
+    gravity.parameters.timestep_parameter = CONSTS['accuracy']
+    gravity.parameters.epsilon_squared = CONSTS['epsilon_squared']
     gravity.parameters.use_gpu = 0
 
     gravity.particles.add_particles(stars)
@@ -207,17 +207,15 @@ if __name__ == '__main__':
     assert is_mpd_running()
 
     metrics = initialize_metrics()
-    
+
     print("Starting simulation setup.")
-    stars, time = initialize_stars(params, CONSTS['epsilon_squared'])
+    stars, time = initialize_stars(params, CONSTS)
 
     write_set_to_file(stars.savepoint(time),
                       params.output_folder+"/snapshots.hdf5", "hdf5",
                       append_to_file=True)
 
-    gravity = setup_integrator(stars, CONSTS['accuracy'],
-                               CONSTS['epsilon_squared'])
-
+    gravity = setup_integrator(stars, CONSTS)
 
     channel = gravity.particles.new_channel_to(stars)
 
@@ -245,25 +243,20 @@ if __name__ == '__main__':
         channel.copy()
         channel.copy_attribute("index_in_code", "id")
 
-
         binaries, binding_energies = find_binaries(stars, minimum_Eb)
 
         if len(binaries) > 0 and params.t_end is None:
             params.t_end = time + (20 | nbody_system.time)
 
-
         metrics = update_metrics(metrics, time, stars, gravity, binaries,
                                  binding_energies, kT)
-
 
         write_set_to_file(stars.savepoint(time),
                           params.output_folder+"/snapshots.hdf5", "hdf5",
                           append_to_file=True)
 
-
         metrics_filename = params.output_folder+"/cluster_metrics.pkl"
         pickle.dump(metrics, open(metrics_filename, "wb"))
-
 
     gravity.stop()
 
