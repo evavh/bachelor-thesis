@@ -87,18 +87,13 @@ def scatterplot(stars, filename):
 
 
 def new_cluster_model(N, eps2):
-    print("making a Plummer model")
     stars = new_plummer_model(N)
 
-    id = numpy.arange(N)
-    stars.id = id+1 | units.none
+    stars.id = numpy.arange(N)+1 | units.none
 
-    print("setting particle  radii")
     stars.radius = 0.0 | nbody_system.length
 
-    print("centering stars")
     stars.move_to_center()
-    print("scaling stars to virial equilibrium")
     stars.scale_to_standard(smoothing_length_squared=eps2)
 
     return stars
@@ -127,15 +122,12 @@ def setup_integrator(stars, ACCURACY_PARAMETER, EPSILON_SQUARED):
     gravity = grav(number_of_workers=1, redirection="none")
 
     gravity.initialize_code()
-    print("Initialized code")
     gravity.parameters.set_defaults()
-    print("Set defaults")
 
     gravity.parameters.timestep_parameter = ACCURACY_PARAMETER
     gravity.parameters.epsilon_squared = EPSILON_SQUARED
     gravity.parameters.use_gpu = 0
 
-    print("adding particles")
     gravity.particles.add_particles(stars)
     gravity.commit_particles()
 
@@ -194,6 +186,8 @@ def update_metrics(metrics, time, stars, gravity, binaries,
 
 
 if __name__ == '__main__':
+    print("Simulation script started.")
+
     CONSTS = {'accuracy': 0.1,
               'epsilon_squared': 0 | nbody_system.length**2}
 
@@ -203,7 +197,6 @@ if __name__ == '__main__':
     remove_file(params.output_folder+"/snapshots.hdf5")
 
     params.random_seed = set_random_seed(params.random_seed)
-    print("random seed =", params.random_seed)
 
     params_filename = params.output_folder+"/parameters.pkl"
     pickle.dump(params, open(params_filename, "wb"))
@@ -214,7 +207,8 @@ if __name__ == '__main__':
     assert is_mpd_running()
 
     metrics = initialize_metrics()
-
+    
+    print("Starting simulation setup.")
     stars, time = initialize_stars(params, CONSTS['epsilon_squared'])
 
     write_set_to_file(stars.savepoint(time),
@@ -224,12 +218,7 @@ if __name__ == '__main__':
     gravity = setup_integrator(stars, CONSTS['accuracy'],
                                CONSTS['epsilon_squared'])
 
-    print('')
-    print("number_of_stars =", params.n)
-    print("evolving to time =", params.t_end,
-          "in steps of", params.delta_t)
 
-    # Channel to copy values from the code to the set in memory.
     channel = gravity.particles.new_channel_to(stars)
 
     stopping_condition = gravity.stopping_conditions.collision_detection
@@ -237,8 +226,6 @@ if __name__ == '__main__':
 
     kT = 1/(6*params.n)
     minimum_Eb = params.minimum_Eb_kT * kT
-    print("kT =", kT)
-    print("minimum Eb =", minimum_Eb, "=", params.minimum_Eb_kT, "kT")
 
     while True:
         print("Starting integration at time", time)
@@ -255,36 +242,29 @@ if __name__ == '__main__':
 
                 break
 
-        # Copy values from the module to the set in memory.
         channel.copy()
         channel.copy_attribute("index_in_code", "id")
 
-        print("Finished integration, starting binary finding.")
 
         binaries, binding_energies = find_binaries(stars, minimum_Eb)
 
         if len(binaries) > 0 and params.t_end is None:
             params.t_end = time + (20 | nbody_system.time)
 
-        print("Finished binary finding, starting filling metrics struct.")
 
         metrics = update_metrics(metrics, time, stars, gravity, binaries,
                                  binding_energies, kT)
 
-        print("Finished filling metrics struct, starting writing snapshot.")
 
         write_set_to_file(stars.savepoint(time),
                           params.output_folder+"/snapshots.hdf5", "hdf5",
                           append_to_file=True)
 
-        print("Finished writing snapshot, starting pickling metrics.")
 
         metrics_filename = params.output_folder+"/cluster_metrics.pkl"
         pickle.dump(metrics, open(metrics_filename, "wb"))
 
-        print("Finished writing data to files, going to next loop")
 
-    print('')
     gravity.stop()
 
     scatterplot(stars, params.output_folder+"/final_state.png")
