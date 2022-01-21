@@ -43,6 +43,9 @@ def parse_arguments():
     if parameters.start_time is not None:
         parameters.start_time = parameters.start_time | nbody_system.time
 
+    if not parameters.output_folder.endswith('/'):
+        parameters.output_folder += '/'
+
     return parameters
 
 
@@ -193,39 +196,32 @@ def update_metrics(metrics, time, stars, gravity, binaries,
 if __name__ == '__main__':
     print("Simulation script started.")
 
+    assert is_mpd_running()
+
+    metrics = initialize_metrics()
     CONSTS = {'accuracy': 0.1,
               'epsilon_squared': 0 | nbody_system.length**2}
-
     params = parse_arguments()
-
-    create_directory(params.output_folder)
-    remove_file(params.output_folder+"snapshots.hdf5")
-
     params.random_seed = set_random_seed(params.random_seed)
 
     pickle_object(params, "parameters.pkl", params)
     pickle_object(CONSTS, "constants.pkl", params)
 
-    assert is_mpd_running()
-
-    metrics = initialize_metrics()
+    kT = 1/(6*params.n)
+    minimum_Eb = params.minimum_Eb_kT * kT
+    create_directory(params.output_folder)
+    remove_file(params.output_folder+"snapshots.hdf5")
 
     print("Starting simulation setup.")
     stars, time = initialize_stars(params, CONSTS)
+    gravity = setup_integrator(stars, CONSTS)
+    channel = gravity.particles.new_channel_to(stars)
+    stopping_condition = gravity.stopping_conditions.collision_detection
+    stopping_condition.enable()
 
     write_set_to_file(stars.savepoint(time),
                       params.output_folder+"snapshots.hdf5", "hdf5",
                       append_to_file=True)
-
-    gravity = setup_integrator(stars, CONSTS)
-
-    channel = gravity.particles.new_channel_to(stars)
-
-    stopping_condition = gravity.stopping_conditions.collision_detection
-    stopping_condition.enable()
-
-    kT = 1/(6*params.n)
-    minimum_Eb = params.minimum_Eb_kT * kT
 
     while True:
         print("Starting integration at time", time)
@@ -237,30 +233,23 @@ if __name__ == '__main__':
         while gravity.get_time() < time:
             gravity.evolve_model(time)
             if stopping_condition.is_set():
-                print('Collision detected at time',
-                      gravity.get_time())
-
+                print('Collision detected at time', gravity.get_time())
                 break
-
         channel.copy()
         channel.copy_attribute("index_in_code", "id")
 
         binaries, binding_energies = find_binaries(stars, minimum_Eb)
-
         if len(binaries) > 0 and params.t_end is None:
             params.t_end = time + (20 | nbody_system.time)
 
         metrics = update_metrics(metrics, time, stars, gravity, binaries,
                                  binding_energies, kT)
-
+        pickle_object(metrics, "cluster_metrics.pkl", params)
         write_set_to_file(stars.savepoint(time),
                           params.output_folder+"snapshots.hdf5", "hdf5",
                           append_to_file=True)
 
-        pickle_object(metrics, "cluster_metrics.pkl", params)
-
     gravity.stop()
 
     scatterplot(stars, params.output_folder+"final_state.png")
-
     write_set_to_file(stars, params.output_folder+"final_state.csv", "csv")
