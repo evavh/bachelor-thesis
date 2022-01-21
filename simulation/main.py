@@ -29,7 +29,7 @@ def parse_arguments():
     parser.add_argument("-T", "--start_time", help="snapshot time to load",
                         default=None, type=float)
     parser.add_argument("-o", "--output_folder", help="where to put output",
-                        default="simulation/output", type=str)
+                        default="simulation/output/", type=str)
     parser.add_argument("-i", "--snapshot_input", help="snaps to start from",
                         default=None, type=str)
     parser.add_argument("-b", "--minimum_Eb_kT", help="minimum binding E / kT",
@@ -54,6 +54,11 @@ def create_directory(directory_name):
 def remove_file(filename):
     if os.path.exists(filename):
         os.remove(filename)
+
+
+def pickle_object(object, filename, params):
+    object_path = params.output_folder+filename
+    pickle.dump(object, open(object_path, "wb"))
 
 
 def set_random_seed(random_seed):
@@ -194,15 +199,12 @@ if __name__ == '__main__':
     params = parse_arguments()
 
     create_directory(params.output_folder)
-    remove_file(params.output_folder+"/snapshots.hdf5")
+    remove_file(params.output_folder+"snapshots.hdf5")
 
     params.random_seed = set_random_seed(params.random_seed)
 
-    params_filename = params.output_folder+"/parameters.pkl"
-    pickle.dump(params, open(params_filename, "wb"))
-
-    consts_filename = params.output_folder+"/constants.pkl"
-    pickle.dump(CONSTS, open(consts_filename, "wb"))
+    pickle_object(params, "parameters.pkl", params)
+    pickle_object(CONSTS, "constants.pkl", params)
 
     assert is_mpd_running()
 
@@ -212,7 +214,7 @@ if __name__ == '__main__':
     stars, time = initialize_stars(params, CONSTS)
 
     write_set_to_file(stars.savepoint(time),
-                      params.output_folder+"/snapshots.hdf5", "hdf5",
+                      params.output_folder+"snapshots.hdf5", "hdf5",
                       append_to_file=True)
 
     gravity = setup_integrator(stars, CONSTS)
@@ -252,14 +254,13 @@ if __name__ == '__main__':
                                  binding_energies, kT)
 
         write_set_to_file(stars.savepoint(time),
-                          params.output_folder+"/snapshots.hdf5", "hdf5",
+                          params.output_folder+"snapshots.hdf5", "hdf5",
                           append_to_file=True)
 
-        metrics_filename = params.output_folder+"/cluster_metrics.pkl"
-        pickle.dump(metrics, open(metrics_filename, "wb"))
+        pickle_object(metrics, "cluster_metrics.pkl", params)
 
     gravity.stop()
 
-    scatterplot(stars, params.output_folder+"/final_state.png")
+    scatterplot(stars, params.output_folder+"final_state.png")
 
-    write_set_to_file(stars, params.output_folder+"/final_state.csv", "csv")
+    write_set_to_file(stars, params.output_folder+"final_state.csv", "csv")
