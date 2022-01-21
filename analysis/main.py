@@ -23,16 +23,20 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def scatterplot(stars, first_binary, time, output_dir):
+def scatterplot(stars, time, output_dir, first_binary):
     x_of_stars = stars.x.value_in(nbody_system.length)
     y_of_stars = stars.y.value_in(nbody_system.length)
 
     colours = []
     sizes = []
     for star in stars:
-        if star.id == first_binary[0].id or star.id == first_binary[1].id:
-            colours.append('red')
-            sizes.append(10)
+        if first_binary is not None:
+            if star.id == first_binary[0].id or star.id == first_binary[1].id:
+                colours.append('red')
+                sizes.append(10)
+            else:
+                colours.append('blue')
+                sizes.append(0.5)
         else:
             colours.append('blue')
             sizes.append(0.5)
@@ -74,6 +78,7 @@ if __name__ == '__main__':
 
     snapshots = read_set_from_file(input_dir+"snapshots.hdf5", "hdf5")
     tmax = len(list(snapshots.history))
+    print(list(snapshots.history))
     print(f"Loaded snapshots of {tmax} timesteps.")
 
     consts = pickle.load(open(input_dir+"constants.pkl", "rb"))
@@ -85,19 +90,41 @@ if __name__ == '__main__':
     metrics = pickle.load(open(input_dir+"cluster_metrics.pkl", "rb"))
     print("Loaded metrics:", list(metrics.keys()))
 
-    if 'first_binaries' in metrics:
-        first_binaries = metrics['first_binaries']
+    times = metrics['times']
+    binaries = metrics['binaries']
+    binding_Es_kT = metrics['binding_energies_kT']
+
+    binaries_found = False
+
+    print(times)
+    for time, binaries, binding_E_kT in zip(times, binaries, binding_Es_kT):
+        if binaries == []:
+            print("No binaries at", time)
+        else:
+            print((f"Binaries {binaries} with binding energy {binding_E_kT} "
+                   f"found at {time}"))
+            if not binaries_found:
+                binaries_found = True
+                first_binaries = binaries
+                first_binding_energies = binding_E_kT
+                first_binaries_time = time
+
+    if binaries_found:
         print("The first binaries are:")
         for binary in first_binaries:
             print(binary[0].id, ",", binary[1].id)
-        print(f"Their energies are: {metrics['first_binary_energies_kT']}")
-        print(f"They were found at t={metrics['first_binary_time']}.")
-        if scatter:
-            for stars in snapshots.history:
-                time = stars.get_timestamp().number
-                print(f"Plotting t={time} out of {tmax}", end="\r")
-                scatterplot(stars, first_binaries[0], time, output_dir)
+        print(f"Their energies are: {first_binding_energies}")
+        print(f"They were found at t={first_binaries_time}.")
     else:
-        print("No binaries found. Only plotting radii.")
+        print("No binaries found.")
+
+    if scatter:
+        for stars in snapshots.history:
+            time = stars.get_timestamp().number
+            print(f"Plotting t={time} out of {tmax}", end="\r")
+            if binaries_found:
+                scatterplot(stars, time, output_dir, first_binaries[0])
+            else:
+                scatterplot(stars, time, output_dir, None)
 
     radiiplot(metrics, output_dir)
