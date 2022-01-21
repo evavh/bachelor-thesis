@@ -5,7 +5,6 @@ import pickle
 import collections
 
 from amuse.ic.plummer import new_plummer_model
-from amuse.ic.salpeter import new_salpeter_mass_distribution_nbody
 from amuse.units import nbody_system
 from amuse.units import units
 from amuse.community.ph4.interface import ph4 as grav
@@ -33,7 +32,7 @@ def parse_arguments():
                         default="simulation/output", type=str)
     parser.add_argument("-i", "--snapshot_input", help="snaps to start from",
                         default=None, type=str)
-    parser.add_argument("-b", "--minimum_Eb_kT", help="minimum binding E in kT",
+    parser.add_argument("-b", "--minimum_Eb_kT", help="minimum binding E / kT",
                         default=10, type=float)
 
     parameters = parser.parse_args()
@@ -167,8 +166,12 @@ def find_binaries(stars, minimum_Eb):
     return binaries, binding_energies
 
 
-def update_metrics(metrics, time, stars, gravity):
+def update_metrics(metrics, time, stars, gravity, binaries,
+                   binding_energies, kT):
     metrics["times"].append(time)
+
+    metrics["binaries"].append(binaries)
+    metrics["binding_energies_kT"].append([x/kT for x in binding_energies])
 
     metrics["rvir"].append(stars.virial_radius())
 
@@ -212,8 +215,6 @@ if __name__ == '__main__':
 
     metrics = initialize_metrics()
 
-    binaries_found = False
-
     stars, time = initialize_stars(params, CONSTS['epsilon_squared'])
 
     write_set_to_file(stars.savepoint(time),
@@ -239,7 +240,6 @@ if __name__ == '__main__':
     print("kT =", kT)
     print("minimum Eb =", minimum_Eb, "=", params.minimum_Eb_kT, "kT")
 
-    zero = 0 | nbody_system.time
     while True:
         print("Starting integration at time", time)
         time += params.delta_t
@@ -263,21 +263,13 @@ if __name__ == '__main__':
 
         binaries, binding_energies = find_binaries(stars, minimum_Eb)
 
-        if len(binaries) > 0:
-            print("Binding energies:", binding_energies)
-            binding_energies_kT = [x/kT for x in binding_energies]
-            print("Binding energies in kT:", binding_energies_kT)
-            if not binaries_found:
-                binaries_found = True
-                metrics["first_binaries"] = binaries
-                metrics["first_binary_energies_kT"] = binding_energies_kT
-                metrics["first_binary_time"] = time
-            if params.t_end is None:
-                params.t_end = time + (20 | nbody_system.time)
+        if len(binaries) > 0 and params.t_end is None:
+            params.t_end = time + (20 | nbody_system.time)
 
         print("Finished binary finding, starting filling metrics struct.")
 
-        metrics = update_metrics(metrics, time, stars, gravity)
+        metrics = update_metrics(metrics, time, stars, gravity, binaries,
+                                 binding_energies, kT)
 
         print("Finished filling metrics struct, starting writing snapshot.")
 
