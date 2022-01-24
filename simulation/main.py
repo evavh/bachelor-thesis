@@ -222,8 +222,18 @@ if __name__ == '__main__':
     write_set_to_file(stars.savepoint(time),
                       params.output_folder+"snapshots.hdf5", "hdf5",
                       append_to_file=True)
+    binaries = []
+    binding_energies = []
 
     while True:
+        print("Saving metrics and snapshot at", time)
+        metrics = update_metrics(metrics, time, stars, gravity, binaries,
+                                 binding_energies, kT)
+        pickle_object(metrics, "cluster_metrics.pkl", params)
+        write_set_to_file(stars.savepoint(time),
+                          params.output_folder+"snapshots.hdf5", "hdf5",
+                          append_to_file=True)
+
         print("Starting integration at time", time)
         time += params.delta_t
 
@@ -237,17 +247,12 @@ if __name__ == '__main__':
                 break
         channel.copy()
         channel.copy_attribute("index_in_code", "id")
+        
+        print("Finished integrating until", time, ", starting binary finding.")
 
         binaries, binding_energies = find_binaries(stars, minimum_Eb)
         if len(binaries) > 0 and params.t_end is None:
             params.t_end = time + (20 | nbody_system.time)
-
-        metrics = update_metrics(metrics, time, stars, gravity, binaries,
-                                 binding_energies, kT)
-        pickle_object(metrics, "cluster_metrics.pkl", params)
-        write_set_to_file(stars.savepoint(time),
-                          params.output_folder+"snapshots.hdf5", "hdf5",
-                          append_to_file=True)
 
     gravity.stop()
 
