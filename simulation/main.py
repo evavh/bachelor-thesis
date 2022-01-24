@@ -234,11 +234,11 @@ if __name__ == '__main__':
                           params.output_folder+"snapshots.hdf5", "hdf5",
                           append_to_file=True)
 
-        print("Starting integration at time", time)
-        time += params.delta_t
-
         if params.t_end is not None and time >= params.t_end:
             break
+
+        print("Starting integration at", time)
+        time += params.delta_t
 
         while gravity.get_time() < time:
             gravity.evolve_model(time)
