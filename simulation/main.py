@@ -219,9 +219,6 @@ if __name__ == '__main__':
     stopping_condition = gravity.stopping_conditions.collision_detection
     stopping_condition.enable()
 
-    write_set_to_file(stars.savepoint(time),
-                      params.output_folder+"snapshots.hdf5", "hdf5",
-                      append_to_file=True)
     binaries = []
     binding_energies = []
 
@@ -247,7 +244,7 @@ if __name__ == '__main__':
                 break
         channel.copy()
         channel.copy_attribute("index_in_code", "id")
-        
+
         print("Finished integrating until", time, ", starting binary finding.")
 
         binaries, binding_energies = find_binaries(stars, minimum_Eb)
