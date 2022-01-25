@@ -1,7 +1,7 @@
+import file_io
+
 import numpy
 import argparse
-import os
-import pickle
 import collections
 
 from amuse.ic.plummer import new_plummer_model
@@ -47,21 +47,6 @@ def parse_arguments():
         parameters.output_folder += '/'
 
     return parameters
-
-
-def create_directory(directory_name):
-    if not os.path.exists(directory_name):
-        os.makedirs(directory_name)
-
-
-def remove_file(filename):
-    if os.path.exists(filename):
-        os.remove(filename)
-
-
-def pickle_object(object, filename, params):
-    object_path = params.output_folder+filename
-    pickle.dump(object, open(object_path, "wb"))
 
 
 def set_random_seed(random_seed):
@@ -204,13 +189,13 @@ if __name__ == '__main__':
     params = parse_arguments()
     params.random_seed = set_random_seed(params.random_seed)
 
-    pickle_object(params, "parameters.pkl", params)
-    pickle_object(CONSTS, "constants.pkl", params)
+    file_io.pickle_object(params, "parameters.pkl", params)
+    file_io.pickle_object(CONSTS, "constants.pkl", params)
 
     kT = 1/(6*params.n)
     minimum_Eb = params.minimum_Eb_kT * kT
-    create_directory(params.output_folder)
-    remove_file(params.output_folder+"snapshots.hdf5")
+    file_io.create_directory(params.output_folder)
+    file_io.remove_file(params.output_folder+"snapshots.hdf5")
 
     print("Starting simulation setup.")
     stars, time = initialize_stars(params, CONSTS)
@@ -226,7 +211,7 @@ if __name__ == '__main__':
         print("Saving metrics and snapshot at", time)
         metrics = update_metrics(metrics, time, stars, gravity, binaries,
                                  binding_energies, kT)
-        pickle_object(metrics, "cluster_metrics.pkl", params)
+        file_io.pickle_object(metrics, "cluster_metrics.pkl", params)
         write_set_to_file(stars.savepoint(time),
                           params.output_folder+"snapshots.hdf5", "hdf5",
                           append_to_file=True)
