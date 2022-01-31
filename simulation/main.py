@@ -146,7 +146,8 @@ if __name__ == '__main__':
     binding_energies = []
 
     while True:
-        print("Saving metrics and snapshot at", time)
+        print(f"First star vx at t={time.number}: {stars[0].vx.number}")
+        print(f"Saving metrics and snapshot at t={time.number}")
         metrics = update_metrics(metrics, time, stars, gravity, binaries,
                                  binding_energies, kT)
         file_io.pickle_object(metrics, "cluster_metrics.pkl", params)
@@ -157,18 +158,18 @@ if __name__ == '__main__':
         if params.t_end is not None and time >= params.t_end:
             break
 
-        print("Starting integration at", time)
+        print(f"Starting integration at t={time.number}")
         time += params.delta_t
 
         while gravity.get_time() < time:
             gravity.evolve_model(time)
             if stopping_condition.is_set():
-                print('Collision detected at time', gravity.get_time())
+                print(f"Collision detected at t={gravity.get_time().number}")
                 break
         channel.copy()
-        channel.copy_attribute("index_in_code", "id")
 
-        print("Finished integrating until", time, ", starting binary finding.")
+        print(f"Finished integrating until t={time.number}")
+        print("Starting binary finding.")
 
         binaries, binding_energies = find_binaries(stars, minimum_Eb)
         if len(binaries) > 0 and params.t_end is None:
