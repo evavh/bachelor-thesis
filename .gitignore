@@ -12,3 +12,5 @@ administration/
 *.swp
 rsyncify.sh
 **/*.log
+**/__pycache__/
+testing/inputs/loadsnap_input.hdf5
