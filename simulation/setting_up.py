@@ -9,6 +9,8 @@ from amuse.community.ph4.interface import ph4 as grav
 
 from amuse.io import read_set_from_file
 
+import file_io
+
 
 def initialize_metrics():
     metrics = collections.defaultdict(list)
@@ -39,10 +41,10 @@ def find_snapshot(params):
     start_time = params.start_time
     for filename in os.listdir(params.snapshot_input):
         print(f"Checking if {filename} is the snapshot for {start_time}")
-        if filename.endswith('.csv') and str(start_time) in filename:
-            stars = read_set_from_file(f"{params.snapshot_input}/{filename}")
+        if filename.endswith('.pkl') and str(start_time) in filename:
+            stars = file_io.unpickle_object(filename, params)
             return stars, start_time
-    raise Exception("Start time not found in snapshot file.")
+    raise Exception("Start time not found in snapshot folder.")
 
 
 def initialize_stars(params, CONSTS):

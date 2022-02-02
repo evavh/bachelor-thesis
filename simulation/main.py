@@ -150,9 +150,9 @@ if __name__ == '__main__':
         metrics = update_metrics(metrics, time, stars, gravity, binaries,
                                  binding_energies, kT)
         file_io.pickle_object(metrics, "cluster_metrics.pkl", params)
-        write_set_to_file(stars.savepoint(time),
-                          params.output_folder+f"snapshot_{time.number}.csv",
-                          'csv')
+
+        print(f"First star at t={time.number}: {stars[0]}")
+        file_io.pickle_object(stars, f"snapshot_{time}.pkl", params)
 
         if params.t_end is not None and time >= params.t_end:
             break

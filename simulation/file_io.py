@@ -15,3 +15,8 @@ def remove_file(filename):
 def pickle_object(object, filename, params):
     object_path = params.output_folder+filename
     pickle.dump(object, open(object_path, "wb"))
+
+
+def unpickle_object(filename, params):
+    object_path = params.snapshot_input+'/'+filename
+    return pickle.load(open(object_path, 'rb'))
