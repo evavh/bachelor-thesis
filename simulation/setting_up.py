@@ -1,3 +1,4 @@
+import os
 import numpy
 import collections
 
@@ -34,11 +35,13 @@ def new_cluster_model(N, eps2):
     return stars
 
 
-def find_snapshot(snapshots, start_time):
-    for snapshot in snapshots.history:
-        time = snapshot.get_timestamp()
-        if time >= start_time:
-            return snapshot, time
+def find_snapshot(params):
+    start_time = params.start_time
+    for filename in os.listdir(params.snapshot_input):
+        print(f"Checking if {filename} is the snapshot for {start_time}")
+        if filename.endswith('.csv') and str(start_time) in filename:
+            stars = read_set_from_file(f"{params.snapshot_input}/{filename}")
+            return stars, start_time
     raise Exception("Start time not found in snapshot file.")
 
 
@@ -47,8 +50,7 @@ def initialize_stars(params, CONSTS):
         stars = new_cluster_model(params.n, CONSTS['epsilon_squared'])
         time = 0.0 | nbody_system.time
     else:
-        snapshots = read_set_from_file(params.snapshot_input, 'hdf5')
-        stars, time = find_snapshot(snapshots, params.start_time)
+        stars, time = find_snapshot(params)
 
     return stars, time
 

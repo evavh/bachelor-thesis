@@ -133,7 +133,6 @@ if __name__ == '__main__':
     kT = 1/(6*params.n)
     minimum_Eb = params.minimum_Eb_kT * kT
     file_io.create_directory(params.output_folder)
-    file_io.remove_file(params.output_folder+"snapshots.hdf5")
 
     print("Starting simulation setup.")
     stars, time = setting_up.initialize_stars(params, CONSTS)
@@ -152,8 +151,8 @@ if __name__ == '__main__':
                                  binding_energies, kT)
         file_io.pickle_object(metrics, "cluster_metrics.pkl", params)
         write_set_to_file(stars.savepoint(time),
-                          params.output_folder+"snapshots.hdf5", "hdf5",
-                          append_to_file=True)
+                          params.output_folder+f"snapshot_{time.number}.csv",
+                          'csv')
 
         if params.t_end is not None and time >= params.t_end:
             break
