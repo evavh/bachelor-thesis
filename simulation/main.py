@@ -137,6 +137,8 @@ if __name__ == '__main__':
     print("Starting simulation setup.")
     stars, time = setting_up.initialize_stars(params, CONSTS)
     gravity = setting_up.setup_integrator(stars, CONSTS)
+    gravity.parameters.begin_time = time
+
     channel = gravity.particles.new_channel_to(stars)
     stopping_condition = gravity.stopping_conditions.collision_detection
     stopping_condition.enable()
