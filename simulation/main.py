@@ -180,3 +180,4 @@ if __name__ == '__main__':
 
     scatterplot(stars, params.output_folder+"final_state.png")
     write_set_to_file(stars, params.output_folder+"final_state.csv", "csv")
+    file_io.round_csv(params.output_folder+"final_state.csv", 3)
