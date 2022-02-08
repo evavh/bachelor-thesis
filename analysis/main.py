@@ -1,4 +1,3 @@
-from amuse.io import read_set_from_file
 from amuse.units import nbody_system
 from matplotlib import pyplot
 import numpy
@@ -23,7 +22,32 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def scatterplot(stars, time, output_dir, first_binary):
+def load_snapshots(snapshot_dir):
+    snapshots = []
+    for filename in os.listdir(snapshot_dir):
+        if filename.endswith('.pkl') and "snapshot" in filename:
+            with open(snapshot_dir+filename, 'rb') as inputfile:
+                snapshots.append(pickle.load(inputfile))
+    return snapshots
+
+
+def load_data(arguments):
+    snapshots = load_snapshots(arguments.input)
+    print(f"Loaded snapshots of {len(snapshots)} timesteps.")
+
+    consts = pickle.load(open(arguments.input+"constants.pkl", "rb"))
+    print("Loaded constants:", list(consts.keys()))
+
+    params = pickle.load(open(arguments.input+"parameters.pkl", "rb"))
+    print("Loaded parameters:", list(vars(params).keys()))
+
+    metrics = pickle.load(open(arguments.input+"cluster_metrics.pkl", "rb"))
+    print("Loaded metrics:", list(metrics.keys()))
+
+    return snapshots, consts, params, metrics
+
+
+def scatterplot(stars, time, arguments, first_binary):
     x_of_stars = stars.x.value_in(nbody_system.length)
     y_of_stars = stars.y.value_in(nbody_system.length)
 
@@ -45,11 +69,11 @@ def scatterplot(stars, time, output_dir, first_binary):
                    c=colours)
     pyplot.xlabel("x")
     pyplot.ylabel("y")
-    pyplot.savefig(output_dir+"scatter/"+str(time)+".svg", format='svg')
+    pyplot.savefig(arguments.output+"scatter/"+str(time)+".svg", format='svg')
     pyplot.clf()
 
 
-def radiiplot(metrics, output_dir):
+def radiiplot(metrics, arguments):
     pyplot.plot(metrics["times"].value_in(nbody_system.time),
                 metrics["rcore"].value_in(nbody_system.length), c='b')
     pyplot.plot(metrics["times"].value_in(nbody_system.time),
@@ -63,32 +87,19 @@ def radiiplot(metrics, output_dir):
     pyplot.xlabel("time")
     pyplot.ylabel("radius")
     pyplot.semilogy()
-    pyplot.savefig(output_dir+"radii.png")
+    pyplot.savefig(arguments.output+"radii.png")
 
 
 if __name__ == '__main__':
     arguments = parse_arguments()
-    input_dir = arguments.input
-    output_dir = arguments.output
-    scatter = arguments.scatter
 
-    create_directory(output_dir)
-    create_directory(output_dir+"scatter")
-    create_directory(input_dir)
+    create_directory(arguments.output)
+    create_directory(arguments.output+"scatter")
+    create_directory(arguments.input)
 
-    snapshots = read_set_from_file(input_dir+"snapshots.hdf5", "hdf5")
-    tmax = len(list(snapshots.history))
-    print(list(snapshots.history))
-    print(f"Loaded snapshots of {tmax} timesteps.")
+    snapshots, consts, params, metrics = load_data(arguments)
 
-    consts = pickle.load(open(input_dir+"constants.pkl", "rb"))
-    print("Loaded constants:", list(consts.keys()))
-
-    params = pickle.load(open(input_dir+"parameters.pkl", "rb"))
-    print("Loaded parameters:", list(vars(params).keys()))
-
-    metrics = pickle.load(open(input_dir+"cluster_metrics.pkl", "rb"))
-    print("Loaded metrics:", list(metrics.keys()))
+    t_max = snapshots[0].get_timestamp()
 
     times = metrics['times']
     binaries = metrics['binaries']
@@ -96,7 +107,6 @@ if __name__ == '__main__':
 
     binaries_found = False
 
-    print(times)
     for time, binaries, binding_E_kT in zip(times, binaries, binding_Es_kT):
         if binaries == []:
             print("No binaries at", time)
@@ -118,13 +128,13 @@ if __name__ == '__main__':
     else:
         print("No binaries found.")
 
-    if scatter:
-        for stars in snapshots.history:
+    if arguments.scatter:
+        for stars in snapshots:
             time = stars.get_timestamp().number
-            print(f"Plotting t={time} out of {tmax}", end="\r")
+            print(f"Plotting t={time} out of {t_max}", end="\r")
             if binaries_found:
-                scatterplot(stars, time, output_dir, first_binaries[0])
+                scatterplot(stars, time, arguments.output, first_binaries[0])
             else:
-                scatterplot(stars, time, output_dir, None)
+                scatterplot(stars, time, arguments.output, None)
 
-    radiiplot(metrics, output_dir)
+    radiiplot(metrics, arguments)

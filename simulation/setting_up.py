@@ -7,8 +7,6 @@ from amuse.units import nbody_system
 from amuse.units import units
 from amuse.community.ph4.interface import ph4 as grav
 
-from amuse.io import read_set_from_file
-
 import file_io
 
 
