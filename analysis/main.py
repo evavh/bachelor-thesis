@@ -1,6 +1,6 @@
 from amuse.units import nbody_system
 from matplotlib import pyplot
-import numpy
+import math
 import pickle
 import os
 import argparse
@@ -45,6 +45,10 @@ def load_data(arguments):
     print("Loaded metrics:", list(metrics.keys()))
 
     return snapshots, consts, params, metrics
+
+
+def t_rh(N, r_h, G, M):
+    return 0.138*N*r_h**(3/2)/(G**(1/2)*M**(1/2)*math.log(0.4*N))
 
 
 def scatterplot(stars, time, arguments, first_binary):
@@ -98,12 +102,15 @@ if __name__ == '__main__':
     create_directory(arguments.input)
 
     snapshots, consts, params, metrics = load_data(arguments)
-
-    t_max = snapshots[0].get_timestamp()
+    print('')
 
     times = metrics['times']
     binaries = metrics['binaries']
     binding_Es_kT = metrics['binding_energies_kT']
+
+    t_max = times[-1]
+    t_rhi = t_rh(params.n, metrics['r50pc'][0], nbody_system.G,
+                 1 | nbody_system.mass)
 
     binaries_found = False
 
@@ -117,16 +124,18 @@ if __name__ == '__main__':
                 binaries_found = True
                 first_binaries = binaries
                 first_binding_energies = binding_E_kT
-                first_binaries_time = time
+                t_bin = time
 
     if binaries_found:
         print("The first binaries are:")
         for binary in first_binaries:
             print(binary[0].id, ",", binary[1].id)
         print(f"Their energies are: {first_binding_energies}")
-        print(f"They were found at t={first_binaries_time}.")
+        print(f"They were found at t = {round(t_bin/t_rhi, 1)} t_rhi.")
     else:
         print("No binaries found.")
+
+    print(f"t_max = {round(t_max/t_rhi, 1)} t_rhi")
 
     if arguments.scatter:
         for stars in snapshots:
