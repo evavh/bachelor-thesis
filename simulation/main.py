@@ -19,6 +19,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--delta_t", help="time between snapshots",
                         default=1.0, type=float)
+    parser.add_argument("-v", "--variable_delta", help="delta_t = 0.01t_crc",
+                        action='store_true')
     parser.add_argument("-n", help="number of stars to simulate",
                         default=100, type=int)
     parser.add_argument("-s", "--random_seed", help="random number seed",
@@ -166,13 +168,17 @@ if __name__ == '__main__':
         print(f"First star at t={time.number}: {stars[0]}")
         file_io.pickle_object(stars, f"snapshot_{time}.pkl", params)
 
-        t_crc = metrics['t_crc'][-1]
-
         if params.t_end is not None and time >= params.t_end:
             break
 
         print(f"Starting integration at t={time.number}")
-        time += params.delta_t
+        t_crc = metrics['t_crc'][-1]
+        if params.variable_delta:
+            time += 0.01*t_crc
+            print(f"delta_t is 0.01*t_crc = {0.01*t_crc} for this iteration")
+        else:
+            time += params.delta_t
+            print(f"delta_t is {params.delta_t} for this iteration")
 
         while gravity.get_time() < time:
             gravity.evolve_model(time)
