@@ -1,6 +1,7 @@
 import file_io
 import setting_up
 
+import math
 import numpy
 import argparse
 
@@ -65,6 +66,12 @@ def scatterplot(stars, filename):
     pyplot.clf()
 
 
+def calculate_t_crc(core_density):
+    G = nbody_system.G
+    under_sqrt = 4*math.pi*G*core_density/3
+    return 1/under_sqrt.sqrt()
+
+
 def find_binaries(stars, minimum_Eb):
     G = nbody_system.G
     binding_energies = []
@@ -113,6 +120,8 @@ def update_metrics(metrics, time, stars, gravity, binaries,
     metrics["kinetic_energy"].append(gravity.kinetic_energy)
     metrics["total_binary_energy"].append(gravity.get_binary_energy())
 
+    metrics['t_crc'].append(calculate_t_crc(core_density))
+
     return metrics
 
 
@@ -156,6 +165,8 @@ if __name__ == '__main__':
 
         print(f"First star at t={time.number}: {stars[0]}")
         file_io.pickle_object(stars, f"snapshot_{time}.pkl", params)
+
+        t_crc = metrics['t_crc'][-1]
 
         if params.t_end is not None and time >= params.t_end:
             break
