@@ -27,5 +27,4 @@ def round_csv(filename, decimals):
     data = pandas.read_csv(filename)
     data = data.iloc[3:]
     data = data.astype(float).round(3)
-    print("Data", data)
     data.to_csv(filename[:-4]+"_rounded.csv", index=False)
