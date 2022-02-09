@@ -122,7 +122,8 @@ if __name__ == '__main__':
     assert is_mpd_running()
 
     metrics = setting_up.initialize_metrics()
-    CONSTS = {'accuracy': 0.1,
+    CONSTS = {'accuracy': 0.01,
+              'initial_accuracy': 0.0025,
               'epsilon_squared': 0 | nbody_system.length**2}
     params = parse_arguments()
     params.random_seed = set_random_seed(params.random_seed)

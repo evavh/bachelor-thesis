@@ -62,6 +62,7 @@ def setup_integrator(stars, CONSTS):
     gravity.parameters.set_defaults()
 
     gravity.parameters.timestep_parameter = CONSTS['accuracy']
+    gravity.parameters.initial_timestep_limit = CONSTS['initial_accuracy']
     gravity.parameters.epsilon_squared = CONSTS['epsilon_squared']
     gravity.parameters.use_gpu = 0
 
