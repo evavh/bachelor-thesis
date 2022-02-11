@@ -104,21 +104,20 @@ if __name__ == '__main__':
     snapshots, consts, params, metrics = load_data(arguments)
     print('')
 
-    times = metrics['times']
-    binaries = metrics['binaries']
-    binding_Es_kT = metrics['binding_energies_kT']
-
-    t_max = times[-1]
+    t_max = metrics['times'][-1]
     t_rhi = t_rh(params.n, metrics['r50pc'][0], nbody_system.G,
                  1 | nbody_system.mass)
+    times_crc = metrics['t_crc']
 
     binaries_found = False
 
-    for time, binaries, binding_E_kT in zip(times, binaries, binding_Es_kT):
+    for time, binaries, binding_E_kT in zip(metrics['times'],
+                                            metrics['binaries'],
+                                            metrics['binding_Es_kT']):
         if binaries == []:
             print("No binaries at", time)
         else:
-            print((f"Binaries {binaries} with binding energy {binding_E_kT} "
+            print((f"Binaries with binding energy {binding_E_kT} "
                    f"found at {time}"))
             if not binaries_found:
                 binaries_found = True
