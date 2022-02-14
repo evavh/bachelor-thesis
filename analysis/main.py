@@ -1,6 +1,7 @@
 from amuse.units import nbody_system
 from matplotlib import pyplot
 import math
+import numpy
 import pickle
 import os
 import argparse
@@ -108,6 +109,13 @@ if __name__ == '__main__':
     t_rhi = t_rh(params.n, metrics['r50pc'][0], nbody_system.G,
                  1 | nbody_system.mass)
     times_crc = metrics['t_crc']
+
+    if params.variable_delta:
+        tau = numpy.cumsum(numpy.full(len(times_crc), 0.01))
+    else:
+        tau = numpy.cumsum(params.delta_t/times_crc)
+
+    print(f"t_crc: {times_crc}, delta_t: {params.delta_t}, tau: {tau}")
 
     binaries_found = False
 

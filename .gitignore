@@ -15,3 +15,4 @@ rsyncify.sh
 **/__pycache__/
 testing/inputs/loadsnap_input.hdf5
 **/*.ignore
+Session.vim
