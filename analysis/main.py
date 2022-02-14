@@ -52,6 +52,22 @@ def t_rh(N, r_h, G, M):
     return 0.138*N*r_h**(3/2)/(G**(1/2)*M**(1/2)*math.log(0.4*N))
 
 
+def norm(vector):
+    return numpy.sqrt(vector.dot(vector))
+
+
+def f_ik_j(component_k, star_j):
+    G = nbody_system.G
+    m_j = star_j.mass
+    m_ik = component_k.mass
+    r_j = numpy.array([star_j.x.number, star_j.y.number, star_j.z.number])\
+        | star_j.x.unit
+    r_ik = numpy.array([component_k.x.number, component_k.y.number,
+                        component_k.z.number]) | star_j.x.unit
+
+    return -G*m_j*m_ik*(r_ik-r_j)/(norm(r_ik-r_j)**3)
+
+
 def scatterplot(stars, time, arguments, first_binary):
     x_of_stars = stars.x.value_in(nbody_system.length)
     y_of_stars = stars.y.value_in(nbody_system.length)
@@ -115,7 +131,8 @@ if __name__ == '__main__':
     else:
         tau = numpy.cumsum(params.delta_t/times_crc)
 
-    print(f"t_crc: {times_crc}, delta_t: {params.delta_t}, tau: {tau}")
+    force_vector = f_ik_j(snapshots[0][0], snapshots[0][1])
+    print("A force vector?", force_vector)
 
     binaries_found = False
 
