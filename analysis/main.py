@@ -1,4 +1,5 @@
 from amuse.units import nbody_system
+from amuse.datamodel import Particles
 from matplotlib import pyplot
 import math
 import numpy
@@ -68,6 +69,15 @@ def f_ik_j(component_k, star_j):
     return -G*m_j*m_ik*(r_ik-r_j)/(norm(r_ik-r_j)**3)
 
 
+def power_function(tuple, star):
+    dEdt = 0 | nbody_system.energy / nbody_system.time
+    for k in tuple:
+        v_k = numpy.array([k.vx.number, k.vy.number, k.vz.number]) | k.vx.unit
+        v_cm = tuple.center_of_mass_velocity()
+        dEdt -= f_ik_j(k, star).dot(v_k - v_cm)
+    return dEdt
+
+
 def scatterplot(stars, time, arguments, first_binary):
     x_of_stars = stars.x.value_in(nbody_system.length)
     y_of_stars = stars.y.value_in(nbody_system.length)
@@ -119,6 +129,8 @@ if __name__ == '__main__':
     create_directory(arguments.input)
 
     snapshots, consts, params, metrics = load_data(arguments)
+    for key in metrics:
+        assert (len(metrics[key]) == len(snapshots))
     print('')
 
     t_max = metrics['times'][-1]
@@ -132,18 +144,23 @@ if __name__ == '__main__':
         tau = numpy.cumsum(params.delta_t/times_crc)
 
     force_vector = f_ik_j(snapshots[0][0], snapshots[0][1])
-    print("A force vector?", force_vector)
+    assert (force_vector.unit == nbody_system.mass * nbody_system.acceleration)
+
+    tuple = Particles(0)
+    tuple.add_particle(snapshots[0][0])
+    tuple.add_particle(snapshots[0][1])
+    dEdt = power_function(tuple, snapshots[0][2])
+    assert (dEdt.unit == nbody_system.energy / nbody_system.time)
 
     binaries_found = False
 
     for time, binaries, binding_E_kT in zip(metrics['times'],
                                             metrics['binaries'],
-                                            metrics['binding_Es_kT']):
+                                            metrics['binding_energies_kT']):
         if binaries == []:
             print("No binaries at", time)
         else:
-            print((f"Binaries with binding energy {binding_E_kT} "
-                   f"found at {time}"))
+            print((f"{len(binaries)} binaries found at {time}"))
             if not binaries_found:
                 binaries_found = True
                 first_binaries = binaries
@@ -153,7 +170,7 @@ if __name__ == '__main__':
     if binaries_found:
         print("The first binaries are:")
         for binary in first_binaries:
-            print(binary[0].id, ",", binary[1].id)
+            print(binary[0].id.number, ",", binary[1].id.number)
         print(f"Their energies are: {first_binding_energies}")
         print(f"They were found at t = {round(t_bin/t_rhi, 1)} t_rhi.")
     else:
