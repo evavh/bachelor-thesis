@@ -179,12 +179,11 @@ if __name__ == '__main__':
     print(f"t_max = {round(t_max/t_rhi, 1)} t_rhi")
 
     if arguments.scatter:
-        for stars in snapshots:
-            time = stars.get_timestamp().number
+        for stars, time in zip(snapshots, metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
             if binaries_found:
-                scatterplot(stars, time, arguments.output, first_binaries[0])
+                scatterplot(stars, time, arguments, first_binaries[0])
             else:
-                scatterplot(stars, time, arguments.output, None)
+                scatterplot(stars, time, arguments, None)
 
     radiiplot(metrics, arguments)
