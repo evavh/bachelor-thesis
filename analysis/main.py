@@ -78,6 +78,32 @@ def power_function(tuple, star):
     return dEdt
 
 
+def work_function(snapshots, tuple_ids, star_id, start_time, end_time):
+    start_index = None
+    for index, stars, time in zip(range(len(snapshots)), snapshots,
+                                  metrics['times']):
+        if time >= start_time and start_index is None:
+            start_index = index
+
+        if time >= end_time:
+            end_index = index
+            break
+
+    power_functions = []
+    for stars in snapshots[start_index:end_index]:
+        tuple = Particles(0)
+        for particle in stars:
+            if particle.id in tuple_ids:
+                tuple.add_particle(particle)
+            if particle.id == star_id:
+                star = particle
+
+        power = power_function(tuple, star) * (1.0 | nbody_system.time)
+        power_functions.append(power)
+
+    return numpy.cumsum(power_functions)
+
+
 def scatterplot(stars, time, arguments, first_binary):
     x_of_stars = stars.x.value_in(nbody_system.length)
     y_of_stars = stars.y.value_in(nbody_system.length)
@@ -177,6 +203,16 @@ if __name__ == '__main__':
         print("No binaries found.")
 
     print(f"t_max = {round(t_max/t_rhi, 1)} t_rhi")
+
+    tuple_ids = []
+    for particle in first_binaries[0]:
+        tuple_ids.append(particle.id)
+
+    all_work = work_function(snapshots, tuple_ids, first_binaries[1][0].id,
+                             0 | nbody_system.time, 21 | nbody_system.time)
+
+    assert (all_work[0].unit == nbody_system.energy),\
+        f"work unit: {all_work[0].unit}, energy unit: {nbody_system.energy}"
 
     if arguments.scatter:
         for stars, time in zip(snapshots, metrics['times']):
