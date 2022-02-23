@@ -200,20 +200,20 @@ if __name__ == '__main__':
             print(binary[0].id.number, ",", binary[1].id.number)
         print(f"Their energies are: {first_binding_energies}")
         print(f"They were found at t = {round(t_bin/t_rhi, 1)} t_rhi.")
+
+        tuple_ids = []
+        for particle in first_binaries[0]:
+            tuple_ids.append(particle.id)
+
+        all_work = work_function(snapshots, tuple_ids, first_binaries[1][0].id,
+                                 0 | nbody_system.time, 21 | nbody_system.time)
+        assert (all_work[0].unit == nbody_system.energy),\
+            f"[work]: {all_work[0].unit}, [energy]: {nbody_system.energy}"
+
     else:
         print("No binaries found.")
 
     print(f"t_max = {round(t_max/t_rhi, 1)} t_rhi")
-
-    tuple_ids = []
-    for particle in first_binaries[0]:
-        tuple_ids.append(particle.id)
-
-    all_work = work_function(snapshots, tuple_ids, first_binaries[1][0].id,
-                             0 | nbody_system.time, 21 | nbody_system.time)
-
-    assert (all_work[0].unit == nbody_system.energy),\
-        f"work unit: {all_work[0].unit}, energy unit: {nbody_system.energy}"
 
     if arguments.scatter:
         for stars, time in zip(snapshots, metrics['times']):
