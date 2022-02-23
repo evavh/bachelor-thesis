@@ -156,7 +156,8 @@ if __name__ == '__main__':
 
     snapshots, consts, params, metrics = load_data(arguments)
     for key in metrics:
-        assert (len(metrics[key]) == len(snapshots))
+        assert (len(metrics[key]) == len(snapshots)),\
+            f"len({key})={len(key)}, there are {len(snapshots)} snaps."
     print('')
 
     t_max = metrics['times'][-1]
