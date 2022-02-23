@@ -103,6 +103,14 @@ def update_metrics(metrics, time, stars, gravity, binaries,
     metrics["times"].append(time)
 
     metrics["binaries"].append(binaries)
+
+    binary_ids = []
+    for binary in binaries:
+        star1 = binary[0]
+        star2 = binary[1]
+        binary_ids.append((star1.id, star2.id))
+    metrics["binary_ids"].append(binary_ids)
+
     metrics["binding_energies_kT"].append([x/kT for x in binding_energies])
 
     metrics["rvir"].append(stars.virial_radius())
