@@ -1,7 +1,8 @@
 run:
 	python3 simulation/main.py
 epaper:
-	send_to_ereader/send.sh
+	epaper -o Uni/Code/simulation simulation/*.py
+	epaper -o Uni/Code/analysis analysis/*.py
 test:
 	testing/run_and_compare.sh
 analyse:
