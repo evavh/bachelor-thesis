@@ -4,6 +4,7 @@ import setting_up
 import math
 import numpy
 import argparse
+import sys
 
 from amuse.units import nbody_system
 from amuse.units import units
@@ -13,6 +14,11 @@ from amuse.io import write_set_to_file
 from amuse.rfi.core import is_mpd_running
 
 from matplotlib import pyplot
+
+
+def flushed_print(string):
+    print(string)
+    sys.stdout.flush()
 
 
 def parse_arguments():
@@ -136,7 +142,7 @@ def update_metrics(metrics, time, stars, gravity, binaries,
 
 
 if __name__ == '__main__':
-    print("Simulation script started.")
+    flushed_print("Simulation script started.")
 
     assert is_mpd_running()
 
@@ -154,7 +160,7 @@ if __name__ == '__main__':
     minimum_Eb = params.minimum_Eb_kT * kT
     file_io.create_directory(params.output_folder)
 
-    print("Starting simulation setup.")
+    flushed_print("Starting simulation setup.")
     stars, time = setting_up.initialize_stars(params, CONSTS)
     gravity = setting_up.setup_integrator(stars, CONSTS)
     gravity.parameters.begin_time = time
@@ -167,7 +173,7 @@ if __name__ == '__main__':
     binding_energies = []
 
     while True:
-        print(f"First star vx at t={time.number}: {stars[0].vx.number}")
+        flushed_print(f"First star vx at t={time.number}: {stars[0].vx.number}")
         print(f"Saving metrics and snapshot at t={time.number}")
         metrics = update_metrics(metrics, time, stars, gravity, binaries,
                                  binding_energies, kT)
