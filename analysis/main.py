@@ -1,6 +1,7 @@
 from amuse.units import nbody_system
 from amuse.datamodel import Particles
 from matplotlib import pyplot
+
 import math
 import numpy
 import pickle
@@ -21,7 +22,13 @@ def parse_arguments():
                         default="analysis/plots/")
     parser.add_argument("--scatter", help="generate scatter plots.",
                         action='store_true')
-    return parser.parse_args()
+    arguments = parser.parse_args()
+    if not arguments.input.endswith("/"):
+        arguments.input += "/"
+    if not arguments.output.endswith("/"):
+        arguments.output += "/"
+
+    return arguments
 
 
 def load_snapshots(snapshot_dir):
@@ -184,11 +191,9 @@ if __name__ == '__main__':
     for time, binaries, binding_E_kT in zip(metrics['times'],
                                             metrics['binaries'],
                                             metrics['binding_energies_kT']):
-        if binaries == []:
-            print("No binaries at", time)
-        else:
-            print((f"{len(binaries)} binaries found at {time}"))
+        if binaries != []:
             if not binaries_found:
+                print((f"{len(binaries)} binaries found at {time}"))
                 binaries_found = True
                 first_binaries = binaries
                 first_binding_energies = binding_E_kT
