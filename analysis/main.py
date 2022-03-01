@@ -22,6 +22,8 @@ def parse_arguments():
                         default="analysis/plots/")
     parser.add_argument("--scatter", help="generate scatter plots.",
                         action='store_true')
+    parser.add_argument("--scatter_core", help="generate scatter of core.",
+                        action='store_true')
     arguments = parser.parse_args()
     if not arguments.input.endswith("/"):
         arguments.input += "/"
@@ -121,14 +123,13 @@ def work_function(snapshots, tuple_ids, star_id, start_time, end_time):
     return work
 
 
-def scatterplot(stars, time, arguments, first_binary=None, core_radius=None,
+def scatterplot(stars, time, output_folder, first_binary=None, core_radius=None,
                 density_centre=None):
+    if not output_folder.endswith("/"):
+        output_folder += "/"
+
     x_of_stars = stars.x.value_in(nbody_system.length)
     y_of_stars = stars.y.value_in(nbody_system.length)
-    core_radius = core_radius.value_in(nbody_system.length)
-    density_centre = density_centre.value_in(nbody_system.length)
-    x_centre = density_centre[0]
-    y_centre = density_centre[1]
 
     colours = []
     sizes = []
@@ -149,6 +150,11 @@ def scatterplot(stars, time, arguments, first_binary=None, core_radius=None,
     pyplot.xlabel("x")
     pyplot.ylabel("y")
     if core_radius is not None:
+        core_radius = core_radius.value_in(nbody_system.length)
+        density_centre = density_centre.value_in(nbody_system.length)
+        x_centre = density_centre[0]
+        y_centre = density_centre[1]
+
         pyplot.xlim(x_centre-core_radius/2, x_centre+core_radius/2)
         pyplot.ylim(y_centre-core_radius/2, y_centre+core_radius/2)
     else:
@@ -156,7 +162,7 @@ def scatterplot(stars, time, arguments, first_binary=None, core_radius=None,
         pyplot.ylim(-8, 8)
     axes = pyplot.gca()
     axes.set_aspect('equal')
-    pyplot.savefig(arguments.output+"scatter/"+str(time)+".svg", format='svg')
+    pyplot.savefig(output_folder+str(time)+".svg", format='svg')
     pyplot.clf()
 
 
@@ -181,7 +187,6 @@ if __name__ == '__main__':
     arguments = parse_arguments()
 
     create_directory(arguments.output)
-    create_directory(arguments.output+"scatter")
     create_directory(arguments.input)
 
     snapshots, consts, params, metrics = load_data(arguments)
@@ -224,11 +229,29 @@ if __name__ == '__main__':
     print(f"t_max = {round(t_max/t_rhi, 1)} t_rhi")
 
     if arguments.scatter:
+        output_folder = arguments.output+"scatter"
+        create_directory(output_folder)
+
         for stars, time in zip(snapshots, metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
             if binaries_found:
-                scatterplot(stars, time, arguments, first_binaries[0])
+                scatterplot(stars, time, output_folder, first_binaries[0])
             else:
-                scatterplot(stars, time, arguments, None)
+                scatterplot(stars, time, output_folder)
+
+    if arguments.scatter_core:
+        output_folder = arguments.output+"core_scatter"
+        create_directory(output_folder)
+
+        for stars, time, core_radius, density_centre in \
+            zip(snapshots, metrics['times'], metrics['rcore'],
+                metrics['density_centre']):
+            print(f"Plotting t={time} out of {t_max}", end="\r")
+            if binaries_found:
+                scatterplot(stars, time, output_folder,
+                            first_binaries[0], core_radius, density_centre[:2])
+            else:
+                scatterplot(stars, time, output_folder,
+                            None, core_radius, density_centre[:2])
 
     radiiplot(metrics, arguments)
