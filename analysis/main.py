@@ -121,9 +121,14 @@ def work_function(snapshots, tuple_ids, star_id, start_time, end_time):
     return work
 
 
-def scatterplot(stars, time, arguments, first_binary):
+def scatterplot(stars, time, arguments, first_binary=None, core_radius=None,
+                density_centre=None):
     x_of_stars = stars.x.value_in(nbody_system.length)
     y_of_stars = stars.y.value_in(nbody_system.length)
+    core_radius = core_radius.value_in(nbody_system.length)
+    density_centre = density_centre.value_in(nbody_system.length)
+    x_centre = density_centre[0]
+    y_centre = density_centre[1]
 
     colours = []
     sizes = []
@@ -143,6 +148,12 @@ def scatterplot(stars, time, arguments, first_binary):
                    c=colours)
     pyplot.xlabel("x")
     pyplot.ylabel("y")
+    if core_radius is not None:
+        pyplot.xlim(x_centre-core_radius/2, x_centre+core_radius/2)
+        pyplot.ylim(y_centre-core_radius/2, y_centre+core_radius/2)
+    else:
+        pyplot.xlim(-8, 8)
+        pyplot.ylim(-8, 8)
     axes = pyplot.gca()
     axes.set_aspect('equal')
     pyplot.savefig(arguments.output+"scatter/"+str(time)+".svg", format='svg')
