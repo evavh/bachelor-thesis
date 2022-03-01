@@ -73,7 +73,10 @@ def f_ik_j(component_k, star_j):
     r_ik = numpy.array([component_k.x.number, component_k.y.number,
                         component_k.z.number]) | star_j.x.unit
 
-    return -G*m_j*m_ik*(r_ik-r_j)/(norm(r_ik-r_j)**3)
+    force_vector = -G*m_j*m_ik*(r_ik-r_j)/(norm(r_ik-r_j)**3)
+    assert (force_vector.unit == nbody_system.mass * nbody_system.acceleration)
+
+    return force_vector
 
 
 def power_function(tuple, star):
@@ -82,6 +85,9 @@ def power_function(tuple, star):
         v_k = numpy.array([k.vx.number, k.vy.number, k.vz.number]) | k.vx.unit
         v_cm = tuple.center_of_mass_velocity()
         dEdt -= f_ik_j(k, star).dot(v_k - v_cm)
+
+    assert (dEdt.unit == nbody_system.energy / nbody_system.time)
+
     return dEdt
 
 
@@ -108,7 +114,11 @@ def work_function(snapshots, tuple_ids, star_id, start_time, end_time):
         power = power_function(tuple, star) * (1.0 | nbody_system.time)
         power_functions.append(power)
 
-    return numpy.cumsum(power_functions)
+    work = numpy.cumsum(power_functions)
+    assert (work[0].unit == nbody_system.energy),\
+        f"[work]: {work[0].unit}, [energy]: {nbody_system.energy}"
+
+    return work
 
 
 def scatterplot(stars, time, arguments, first_binary):
@@ -177,17 +187,7 @@ if __name__ == '__main__':
     else:
         tau = numpy.cumsum(params.delta_t/times_crc)
 
-    force_vector = f_ik_j(snapshots[0][0], snapshots[0][1])
-    assert (force_vector.unit == nbody_system.mass * nbody_system.acceleration)
-
-    tuple = Particles(0)
-    tuple.add_particle(snapshots[0][0])
-    tuple.add_particle(snapshots[0][1])
-    dEdt = power_function(tuple, snapshots[0][2])
-    assert (dEdt.unit == nbody_system.energy / nbody_system.time)
-
     binaries_found = False
-
     for time, binaries, binding_E_kT in zip(metrics['times'],
                                             metrics['binaries'],
                                             metrics['binding_energies_kT']):
@@ -205,16 +205,6 @@ if __name__ == '__main__':
             print(binary[0].id.number, ",", binary[1].id.number)
         print(f"Their energies are: {first_binding_energies}")
         print(f"They were found at t = {round(t_bin/t_rhi, 1)} t_rhi.")
-
-        tuple_ids = []
-        for particle in first_binaries[0]:
-            tuple_ids.append(particle.id)
-
-        all_work = work_function(snapshots, tuple_ids, first_binaries[1][0].id,
-                                 0 | nbody_system.time, 21 | nbody_system.time)
-        assert (all_work[0].unit == nbody_system.energy),\
-            f"[work]: {all_work[0].unit}, [energy]: {nbody_system.energy}"
-
     else:
         print("No binaries found.")
 
