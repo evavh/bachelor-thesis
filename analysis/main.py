@@ -134,15 +134,17 @@ def scatterplot(stars, time, arguments, first_binary):
                 sizes.append(10)
             else:
                 colours.append('blue')
-                sizes.append(0.5)
+                sizes.append(0.1)
         else:
             colours.append('blue')
-            sizes.append(0.5)
+            sizes.append(0.1)
 
     pyplot.scatter(x_of_stars, y_of_stars, s=sizes,
                    c=colours)
     pyplot.xlabel("x")
     pyplot.ylabel("y")
+    axes = pyplot.gca()
+    axes.set_aspect('equal')
     pyplot.savefig(arguments.output+"scatter/"+str(time)+".svg", format='svg')
     pyplot.clf()
 
