@@ -55,6 +55,10 @@ def load_data(arguments):
     metrics = pickle.load(open(arguments.input+"cluster_metrics.pkl", "rb"))
     print("Loaded metrics:", list(metrics.keys()))
 
+    for key in metrics:
+        assert (len(metrics[key]) == len(snapshots)),\
+            f"len({key})={len(key)}, there are {len(snapshots)} snaps."
+
     return snapshots, consts, params, metrics
 
 
@@ -64,6 +68,29 @@ def metrics_to_time_key(metrics):
                     for vals in zip(*(metrics[k] for k in keys))]
     return {metrics['times'][i].value_in(nbody_system.time): metrics_list[i]
             for i in range(len(metrics_list))}
+
+
+def find_first_binary(metrics):
+    binaries_found = False
+    first_binaries = None
+    t_bin = None
+    for time, binaries in zip(metrics['times'], metrics['binaries']):
+        if binaries != []:
+            print((f"{len(binaries)} binaries found at {time}"))
+            if not binaries_found:
+                binaries_found = True
+                first_binaries = binaries
+                t_bin = time
+
+    if binaries_found:
+        print("The first binaries are:")
+        for binary in first_binaries:
+            print(binary[0].id.number, ",", binary[1].id.number)
+        print(f"They were found at t = {round(t_bin/t_rhi, 1)} t_rhi.")
+    else:
+        print("No binaries found.")
+
+    return first_binaries, t_bin
 
 
 def t_rh(N, r_h, G, M):
@@ -200,9 +227,6 @@ if __name__ == '__main__':
     create_directory(arguments.input)
 
     snapshots, consts, params, metrics = load_data(arguments)
-    for key in metrics:
-        assert (len(metrics[key]) == len(snapshots)),\
-            f"len({key})={len(key)}, there are {len(snapshots)} snaps."
     print('')
 
     metrics_by_time = metrics_to_time_key(metrics)
@@ -217,26 +241,8 @@ if __name__ == '__main__':
     else:
         tau = numpy.cumsum(params.delta_t/times_crc)
 
-    binaries_found = False
-    for time, binaries, binding_E_kT in zip(metrics['times'],
-                                            metrics['binaries'],
-                                            metrics['binding_energies_kT']):
-        if binaries != []:
-            if not binaries_found:
-                print((f"{len(binaries)} binaries found at {time}"))
-                binaries_found = True
-                first_binaries = binaries
-                first_binding_energies = binding_E_kT
-                t_bin = time
-
-    if binaries_found:
-        print("The first binaries are:")
-        for binary in first_binaries:
-            print(binary[0].id.number, ",", binary[1].id.number)
-        print(f"Their energies are: {first_binding_energies}")
-        print(f"They were found at t = {round(t_bin/t_rhi, 1)} t_rhi.")
-    else:
-        print("No binaries found.")
+    first_binaries, t_bin = find_first_binary(metrics)
+    binaries_found = (first_binaries is not None)
 
     print(f"t_max = {round(t_max/t_rhi, 1)} t_rhi")
 
