@@ -70,27 +70,30 @@ def metrics_to_time_key(metrics):
             for i in range(len(metrics_list))}
 
 
-def find_first_binary(metrics):
+def find_first_binary(metrics, t_rhi):
     binaries_found = False
-    first_binaries = None
+    first_binary = None
     t_bin = None
+
     for time, binaries in zip(metrics['times'], metrics['binaries']):
         if binaries != []:
-            print((f"{len(binaries)} binaries found at {time}"))
             if not binaries_found:
                 binaries_found = True
-                first_binaries = binaries
+                first_binary = binaries[0]
+                first_binary_ids = (first_binary[0].id.number,
+                                    first_binary[1].id.number)
                 t_bin = time
 
-    if binaries_found:
-        print("The first binaries are:")
-        for binary in first_binaries:
-            print(binary[0].id.number, ",", binary[1].id.number)
-        print(f"They were found at t = {round(t_bin/t_rhi, 1)} t_rhi.")
-    else:
+                print(f"The first binary is {first_binary_ids}")
+                print((f"It was found at t = {t_bin.number} = "
+                       f"{round(t_bin/t_rhi, 1)} t_rhi."))
+                if len(binaries) > 1:
+                    print(f"NOTE: {len(binaries)-1} more were found at this t!")
+
+    if not binaries_found:
         print("No binaries found.")
 
-    return first_binaries, t_bin
+    return first_binary, t_bin
 
 
 def t_rh(N, r_h, G, M):
@@ -241,8 +244,8 @@ if __name__ == '__main__':
     else:
         tau = numpy.cumsum(params.delta_t/times_crc)
 
-    first_binaries, t_bin = find_first_binary(metrics)
-    binaries_found = (first_binaries is not None)
+    first_binary, t_bin = find_first_binary(metrics, t_rhi)
+    binaries_found = (first_binary is not None)
 
     print(f"t_max = {round(t_max/t_rhi, 1)} t_rhi")
 
@@ -253,7 +256,7 @@ if __name__ == '__main__':
         for stars, time in zip(snapshots, metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
             if binaries_found:
-                scatterplot(stars, time, output_folder, first_binaries[0])
+                scatterplot(stars, time, output_folder, first_binary)
             else:
                 scatterplot(stars, time, output_folder)
 
@@ -265,7 +268,7 @@ if __name__ == '__main__':
             print(f"Plotting t={time} out of {t_max}", end="\r")
             if binaries_found:
                 scatterplot(stars, time, output_folder,
-                            first_binaries[0], metrics_by_time)
+                            first_binary, metrics_by_time)
             else:
                 scatterplot(stars, time, output_folder,
                             None, metrics_by_time)
