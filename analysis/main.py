@@ -131,8 +131,8 @@ def work_function(snapshots, tuple_ids, star_id, start_time, end_time):
     return work
 
 
-def scatterplot(stars, time, output_folder, first_binary=None, core_radius=None,
-                density_centre=None):
+def scatterplot(stars, time, output_folder, first_binary=None,
+                metrics_by_time=None):
     if not output_folder.endswith("/"):
         output_folder += "/"
 
@@ -153,12 +153,14 @@ def scatterplot(stars, time, output_folder, first_binary=None, core_radius=None,
             colours.append('blue')
             sizes.append(0.1)
 
-    pyplot.scatter(x_of_stars, y_of_stars, s=sizes,
-                   c=colours)
+    pyplot.scatter(x_of_stars, y_of_stars, s=sizes, c=colours)
     pyplot.xlabel("x")
     pyplot.ylabel("y")
-    if core_radius is not None:
+    if metrics_by_time is not None:
+        time_number = time.value_in(nbody_system.time)
+        core_radius = metrics_by_time[time_number]['rcore']
         core_radius = core_radius.value_in(nbody_system.length)
+        density_centre = metrics_by_time[time_number]['density_centre']
         density_centre = density_centre.value_in(nbody_system.length)
         x_centre = density_centre[0]
         y_centre = density_centre[1]
@@ -253,15 +255,13 @@ if __name__ == '__main__':
         output_folder = arguments.output+"core_scatter"
         create_directory(output_folder)
 
-        for stars, time, core_radius, density_centre in \
-            zip(snapshots, metrics['times'], metrics['rcore'],
-                metrics['density_centre']):
+        for stars, time in zip(snapshots, metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
             if binaries_found:
                 scatterplot(stars, time, output_folder,
-                            first_binaries[0], core_radius, density_centre[:2])
+                            first_binaries[0], metrics_by_time)
             else:
                 scatterplot(stars, time, output_folder,
-                            None, core_radius, density_centre[:2])
+                            None, metrics_by_time)
 
     radiiplot(metrics, arguments)
