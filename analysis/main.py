@@ -58,6 +58,14 @@ def load_data(arguments):
     return snapshots, consts, params, metrics
 
 
+def metrics_to_time_key(metrics):
+    keys = metrics.keys()
+    metrics_list = [dict(zip(keys, vals))
+                    for vals in zip(*(metrics[k] for k in keys))]
+    return {metrics['times'][i].value_in(nbody_system.time): metrics_list[i]
+            for i in range(len(metrics_list))}
+
+
 def t_rh(N, r_h, G, M):
     return 0.138*N*r_h**(3/2)/(G**(1/2)*M**(1/2)*math.log(0.4*N))
 
@@ -194,6 +202,8 @@ if __name__ == '__main__':
         assert (len(metrics[key]) == len(snapshots)),\
             f"len({key})={len(key)}, there are {len(snapshots)} snaps."
     print('')
+
+    metrics_by_time = metrics_to_time_key(metrics)
 
     t_max = metrics['times'][-1]
     t_rhi = t_rh(params.n, metrics['r50pc'][0], nbody_system.G,
