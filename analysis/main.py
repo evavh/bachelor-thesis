@@ -4,70 +4,8 @@ from matplotlib import pyplot
 
 import math
 import numpy
-import pickle
-import os
-import argparse
 
-
-def create_directory(directory_name):
-    if not os.path.exists(directory_name):
-        os.makedirs(directory_name)
-
-
-def parse_arguments():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input", help="Data directory to be analysed",
-                        default="analysis/data/")
-    parser.add_argument("-o", "--output", help="Directory to put output",
-                        default="analysis/plots/")
-    parser.add_argument("--scatter", help="generate scatter plots.",
-                        action='store_true')
-    parser.add_argument("--scatter_core", help="generate scatter of core.",
-                        action='store_true')
-    arguments = parser.parse_args()
-    if not arguments.input.endswith("/"):
-        arguments.input += "/"
-    if not arguments.output.endswith("/"):
-        arguments.output += "/"
-
-    return arguments
-
-
-def load_snapshots(snapshot_dir):
-    snapshots = []
-    for filename in os.listdir(snapshot_dir):
-        if filename.endswith('.pkl') and "snapshot" in filename:
-            with open(snapshot_dir+filename, 'rb') as inputfile:
-                snapshots.append(pickle.load(inputfile))
-    return snapshots
-
-
-def load_data(arguments):
-    snapshots = load_snapshots(arguments.input)
-    print(f"Loaded snapshots of {len(snapshots)} timesteps.")
-
-    consts = pickle.load(open(arguments.input+"constants.pkl", "rb"))
-    print("Loaded constants:", list(consts.keys()))
-
-    params = pickle.load(open(arguments.input+"parameters.pkl", "rb"))
-    print("Loaded parameters:", list(vars(params).keys()))
-
-    metrics = pickle.load(open(arguments.input+"cluster_metrics.pkl", "rb"))
-    print("Loaded metrics:", list(metrics.keys()))
-
-    for key in metrics:
-        assert (len(metrics[key]) == len(snapshots)),\
-            f"len({key})={len(key)}, there are {len(snapshots)} snaps."
-
-    return snapshots, consts, params, metrics
-
-
-def metrics_to_time_key(metrics):
-    keys = metrics.keys()
-    metrics_list = [dict(zip(keys, vals))
-                    for vals in zip(*(metrics[k] for k in keys))]
-    return {metrics['times'][i].value_in(nbody_system.time): metrics_list[i]
-            for i in range(len(metrics_list))}
+import input_output
 
 
 def find_first_binary(metrics, t_rhi):
@@ -88,7 +26,8 @@ def find_first_binary(metrics, t_rhi):
                 print((f"It was found at t = {t_bin.number} = "
                        f"{round(t_bin/t_rhi, 1)} t_rhi."))
                 if len(binaries) > 1:
-                    print(f"NOTE: {len(binaries)-1} more were found at this t!")
+                    print((f"NOTE: {len(binaries)-1} more were found at this"
+                           " time!"))
 
     if not binaries_found:
         print("No binaries found.")
@@ -224,15 +163,15 @@ def radiiplot(metrics, arguments):
 
 
 if __name__ == '__main__':
-    arguments = parse_arguments()
+    arguments = input_output.parse_arguments()
 
-    create_directory(arguments.output)
-    create_directory(arguments.input)
+    input_output.create_directory(arguments.output)
+    input_output.create_directory(arguments.input)
 
-    snapshots, consts, params, metrics = load_data(arguments)
+    snapshots, consts, params, metrics = input_output.load_data(arguments)
     print('')
 
-    metrics_by_time = metrics_to_time_key(metrics)
+    metrics_by_time = input_output.metrics_to_time_key(metrics)
 
     t_max = metrics['times'][-1]
     t_rhi = t_rh(params.n, metrics['r50pc'][0], nbody_system.G,
@@ -251,7 +190,7 @@ if __name__ == '__main__':
 
     if arguments.scatter:
         output_folder = arguments.output+"scatter"
-        create_directory(output_folder)
+        input_output.create_directory(output_folder)
 
         for stars, time in zip(snapshots, metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
@@ -262,7 +201,7 @@ if __name__ == '__main__':
 
     if arguments.scatter_core:
         output_folder = arguments.output+"core_scatter"
-        create_directory(output_folder)
+        input_output.create_directory(output_folder)
 
         for stars, time in zip(snapshots, metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
