@@ -34,8 +34,27 @@ def find_first_binary(metrics, t_rhi):
     return first_binary, t_bin
 
 
-def scatterplot(stars, time, output_folder, first_binary=None,
-                metrics_by_time=None):
+def calculate_xylim(metrics_by_time, time, radius_key):
+    time_number = time.value_in(nbody_system.time)
+
+    radius = metrics_by_time[time_number][radius_key]
+    radius = radius.value_in(nbody_system.length)
+
+    density_centre = metrics_by_time[time_number]['density_centre']
+    density_centre = density_centre.value_in(nbody_system.length)
+
+    x_centre = density_centre[0]
+    y_centre = density_centre[1]
+
+    neg_xlim = x_centre - radius/2
+    neg_ylim = y_centre - radius/2
+    pos_xlim = x_centre + radius/2
+    pos_ylim = y_centre + radius/2
+
+    return (neg_xlim, neg_ylim, pos_xlim, pos_ylim)
+
+
+def scatterplot(stars, time, output_folder, xylims, first_binary=None):
     if not output_folder.endswith("/"):
         output_folder += "/"
 
@@ -59,20 +78,11 @@ def scatterplot(stars, time, output_folder, first_binary=None,
     pyplot.scatter(x_of_stars, y_of_stars, s=sizes, c=colours)
     pyplot.xlabel("x")
     pyplot.ylabel("y")
-    if metrics_by_time is not None:
-        time_number = time.value_in(nbody_system.time)
-        core_radius = metrics_by_time[time_number]['rcore']
-        core_radius = core_radius.value_in(nbody_system.length)
-        density_centre = metrics_by_time[time_number]['density_centre']
-        density_centre = density_centre.value_in(nbody_system.length)
-        x_centre = density_centre[0]
-        y_centre = density_centre[1]
 
-        pyplot.xlim(x_centre-core_radius/2, x_centre+core_radius/2)
-        pyplot.ylim(y_centre-core_radius/2, y_centre+core_radius/2)
-    else:
-        pyplot.xlim(-8, 8)
-        pyplot.ylim(-8, 8)
+    neg_xlim, neg_ylim, pos_xlim, pos_ylim = xylims
+    pyplot.xlim(neg_xlim, pos_xlim)
+    pyplot.ylim(neg_ylim, pos_ylim)
+
     axes = pyplot.gca()
     axes.set_aspect('equal')
     pyplot.savefig(output_folder+str(time)+".svg", format='svg')
@@ -128,10 +138,12 @@ if __name__ == '__main__':
 
         for stars, time in zip(snapshots, metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
+            xylims = calculate_xylim(metrics_by_time, time, 'rvir')
+
             if binaries_found:
-                scatterplot(stars, time, output_folder, first_binary)
+                scatterplot(stars, time, output_folder, xylims, first_binary)
             else:
-                scatterplot(stars, time, output_folder)
+                scatterplot(stars, time, output_folder, xylims)
 
     if arguments.scatter_core:
         output_folder = arguments.output+"core_scatter"
@@ -139,11 +151,11 @@ if __name__ == '__main__':
 
         for stars, time in zip(snapshots, metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
+            xylims = calculate_xylim(metrics_by_time, time, 'rcore')
+
             if binaries_found:
-                scatterplot(stars, time, output_folder,
-                            first_binary, metrics_by_time)
+                scatterplot(stars, time, output_folder, xylims, first_binary)
             else:
-                scatterplot(stars, time, output_folder,
-                            None, metrics_by_time)
+                scatterplot(stars, time, output_folder, xylims)
 
     radiiplot(metrics, arguments)
