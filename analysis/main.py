@@ -7,9 +7,15 @@ import formulas
 import plotting
 
 
+def ids_to_stars(snapshot, ids):
+    def criterium(id): return id in ids
+    return snapshot.select(criterium, ['id'])
+
+
 def find_first_binary(metrics, t_rhi):
     binaries_found = False
     first_binary = None
+    first_binary_ids = None
     t_bin = None
 
     for time, binaries in zip(metrics['times'], metrics['binaries']):
@@ -31,7 +37,7 @@ def find_first_binary(metrics, t_rhi):
     if not binaries_found:
         print("No binaries found.")
 
-    return first_binary, t_bin
+    return first_binary_ids, t_bin
 
 
 if __name__ == '__main__':
@@ -55,8 +61,9 @@ if __name__ == '__main__':
     else:
         tau = numpy.cumsum(params.delta_t/times_crc)
 
-    first_binary, t_bin = find_first_binary(metrics, t_rhi)
-    binaries_found = (first_binary is not None)
+    first_binary_ids, t_bin = find_first_binary(metrics, t_rhi)
+    first_binary = ids_to_stars(snapshots[0], first_binary_ids)
+    binaries_found = (first_binary_ids is not None)
 
     print(f"t_max = {round(t_max/t_rhi, 1)} t_rhi")
 
