@@ -133,25 +133,20 @@ if __name__ == '__main__':
     print(f"t_max = {round(t_max/t_rhi, 1)} t_rhi")
 
     if arguments.scatter:
-        output_folder = arguments.output+"scatter"
-        input_output.create_directory(output_folder)
-
-        for stars, time in zip(snapshots, metrics['times']):
-            print(f"Plotting t={time} out of {t_max}", end="\r")
-            xylims = calculate_xylim(metrics_by_time, time, 'rvir')
-
-            if binaries_found:
-                scatterplot(stars, time, output_folder, xylims, first_binary)
-            else:
-                scatterplot(stars, time, output_folder, xylims)
+        folder_name = "scatter"
+        radius_key = 'rvir'
 
     if arguments.scatter_core:
-        output_folder = arguments.output+"core_scatter"
+        folder_name = "scatter_core"
+        radius_key = 'rcore'
+
+    if arguments.scatter or arguments.scatter_core:
+        output_folder = arguments.output+folder_name
         input_output.create_directory(output_folder)
 
         for stars, time in zip(snapshots, metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
-            xylims = calculate_xylim(metrics_by_time, time, 'rcore')
+            xylims = calculate_xylim(metrics_by_time, time, radius_key)
 
             if binaries_found:
                 scatterplot(stars, time, output_folder, xylims, first_binary)
