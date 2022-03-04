@@ -79,14 +79,14 @@ if __name__ == '__main__':
         output_folder = arguments.output+folder_name
         input_output.create_directory(output_folder)
 
-        for stars, time in zip(snapshots, metrics['times']):
+        for snapshot, time in zip(snapshots, metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
             xylims = plotting.get_xylim(metrics_by_time, time, radius_key)
 
             if binaries_found:
-                plotting.scatter(stars, time, output_folder, xylims,
-                                 first_binary)
+                plotting.scatter(snapshot, time, output_folder, xylims,
+                                 first_binary_ids)
             else:
-                plotting.scatter(stars, time, output_folder, xylims)
+                plotting.scatter(snapshot, time, output_folder, xylims)
 
     plotting.radii(metrics, arguments)

@@ -2,6 +2,7 @@ from amuse.units import nbody_system
 from matplotlib import pyplot
 
 import formulas
+import main
 
 
 def get_xylim(metrics_by_time, time, radius_key):
@@ -24,18 +25,20 @@ def get_xylim(metrics_by_time, time, radius_key):
     return (neg_xlim, neg_ylim, pos_xlim, pos_ylim)
 
 
-def scatter(stars, time, output_folder, xylims, first_binary=None):
+def scatter(snapshot, time, output_folder, xylims, first_binary_ids=None):
     if not output_folder.endswith("/"):
         output_folder += "/"
 
-    x_of_stars = stars.x.value_in(nbody_system.length)
-    y_of_stars = stars.y.value_in(nbody_system.length)
+    first_binary = main.ids_to_stars(snapshot, first_binary_ids)
+
+    x_of_stars = snapshot.x.value_in(nbody_system.length)
+    y_of_stars = snapshot.y.value_in(nbody_system.length)
 
     colours = []
     sizes = []
-    for star in stars:
+    for star in snapshot:
         if first_binary is not None:
-            if star.id == first_binary[0].id or star.id == first_binary[1].id:
+            if star == first_binary[0] or star == first_binary[1]:
                 colours.append('red')
                 sizes.append(10)
             else:
@@ -56,7 +59,7 @@ def scatter(stars, time, output_folder, xylims, first_binary=None):
     axes = pyplot.gca()
     axes.set_aspect('equal')
 
-    N = len(stars)
+    N = len(snapshot)
     kT = 1/(6*N)
     Eb = formulas.binding_energy(first_binary[0], first_binary[1])
     pyplot.suptitle((f"t = {time.number} (nbody time),"
