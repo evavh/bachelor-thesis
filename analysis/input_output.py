@@ -20,11 +20,16 @@ def parse_arguments():
                         action='store_true')
     parser.add_argument("--scatter_core", help="generate scatter of core.",
                         action='store_true')
+    parser.add_argument("-og", "--original_run", help="run from t0",
+                        type=str)
     arguments = parser.parse_args()
     if not arguments.input.endswith("/"):
         arguments.input += "/"
     if not arguments.output.endswith("/"):
         arguments.output += "/"
+    if arguments.original_run is not None \
+            and not arguments.original_run.endswith("/"):
+        arguments.original_run += "/"
 
     return arguments
 
@@ -51,11 +56,18 @@ def load_data(arguments):
     metrics = pickle.load(open(arguments.input+"cluster_metrics.pkl", "rb"))
     print("Loaded metrics:", list(metrics.keys()))
 
+    if arguments.original_run is not None:
+        og_metrics = pickle.load(open(arguments.original_run +
+                                      "cluster_metrics.pkl", "rb"))
+        print("Loaded original run metrics:", list(og_metrics.keys()))
+    else:
+        og_metrics = None
+
     for key in metrics:
         assert (len(metrics[key]) == len(snapshots)),\
             f"len({key})={len(key)}, there are {len(snapshots)} snaps."
 
-    return snapshots, consts, params, metrics
+    return snapshots, consts, params, metrics, og_metrics
 
 
 def metrics_to_time_key(metrics):

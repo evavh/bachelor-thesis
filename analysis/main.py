@@ -46,20 +46,28 @@ if __name__ == '__main__':
     input_output.create_directory(arguments.output)
     input_output.create_directory(arguments.input)
 
-    snapshots, consts, params, metrics = input_output.load_data(arguments)
+    snapshots, consts, params, metrics, og_metrics = \
+        input_output.load_data(arguments)
     print('')
 
     metrics_by_time = input_output.metrics_to_time_key(metrics)
 
+    if og_metrics is not None:
+        t0_metrics = input_output.metrics_to_time_key(og_metrics)[0.0]
+        metrics_by_time[0.0] = t0_metrics
+
+    if 0.0 not in metrics_by_time:
+        print("t=0.0 not found, please provide original run data with -og")
+
     t_max = metrics['times'][-1]
-    t_rhi = formulas.t_rh(params.n, metrics['r50pc'][0], nbody_system.G,
-                          1 | nbody_system.mass)
+    t_rhi = formulas.t_rh(params.n, metrics_by_time[0.0]['r50pc'],
+                          nbody_system.G, 1 | nbody_system.mass)
     times_crc = metrics['t_crc']
 
     if params.variable_delta:
-        tau = numpy.cumsum(numpy.full(len(times_crc), 0.01))
+        taus = numpy.cumsum(numpy.full(len(times_crc), 0.01))
     else:
-        tau = numpy.cumsum(params.delta_t/times_crc)
+        taus = numpy.cumsum(params.delta_t/times_crc)
 
     first_binary_ids, t_bin = find_first_binary(metrics, t_rhi)
     first_binary = ids_to_stars(snapshots[0], first_binary_ids)
