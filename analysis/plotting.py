@@ -6,33 +6,32 @@ import main
 
 
 def get_xylim(metrics_by_time, time, radius_key):
-    time_number = time.value_in(nbody_system.time)
-
-    radius = metrics_by_time[time_number][radius_key]
+    radius = metrics_by_time[time.number][radius_key]
     radius = radius.value_in(nbody_system.length)
 
-    density_centre = metrics_by_time[time_number]['density_centre']
+    density_centre = metrics_by_time[time.number]['density_centre']
     density_centre = density_centre.value_in(nbody_system.length)
 
     x_centre = density_centre[0]
     y_centre = density_centre[1]
 
-    neg_xlim = x_centre - radius/2
-    neg_ylim = y_centre - radius/2
-    pos_xlim = x_centre + radius/2
-    pos_ylim = y_centre + radius/2
+    neg_xlim = x_centre - radius
+    neg_ylim = y_centre - radius
+    pos_xlim = x_centre + radius
+    pos_ylim = y_centre + radius
 
     return (neg_xlim, neg_ylim, pos_xlim, pos_ylim)
 
 
-def scatter(snapshot, time, output_folder, xylims, first_binary_ids=None):
+def scatter(snapshot, time, output_folder, xylims, rvir,
+            first_binary_ids=None):
     if not output_folder.endswith("/"):
         output_folder += "/"
 
     first_binary = main.ids_to_stars(snapshot, first_binary_ids)
 
-    x_of_stars = snapshot.x.value_in(nbody_system.length)
-    y_of_stars = snapshot.y.value_in(nbody_system.length)
+    x_of_stars = snapshot.x/rvir
+    y_of_stars = snapshot.y/rvir
 
     colours = []
     sizes = []
@@ -49,8 +48,8 @@ def scatter(snapshot, time, output_folder, xylims, first_binary_ids=None):
             sizes.append(0.1)
 
     pyplot.scatter(x_of_stars, y_of_stars, s=sizes, c=colours)
-    pyplot.xlabel("x")
-    pyplot.ylabel("y")
+    pyplot.xlabel("$x/r_v$")
+    pyplot.ylabel("$y/r_v$")
 
     neg_xlim, neg_ylim, pos_xlim, pos_ylim = xylims
     pyplot.xlim(neg_xlim, pos_xlim)
@@ -62,7 +61,7 @@ def scatter(snapshot, time, output_folder, xylims, first_binary_ids=None):
     N = len(snapshot)
     kT = 1/(6*N)
     Eb = formulas.binding_energy(first_binary[0], first_binary[1])
-    pyplot.suptitle((f"t = {time.number} (nbody time),"
+    pyplot.suptitle((f"t = {time.number} (nbody time), "
                      f"Eb = {round(Eb.number/kT, 1)} kT"))
     pyplot.savefig(output_folder+str(time)+".svg", format='svg')
     pyplot.clf()

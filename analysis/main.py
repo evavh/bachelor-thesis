@@ -82,11 +82,12 @@ if __name__ == '__main__':
         for snapshot, time in zip(snapshots, metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
             xylims = plotting.get_xylim(metrics_by_time, time, radius_key)
+            rvir = metrics_by_time[time.number]['rvir']
 
             if binaries_found:
-                plotting.scatter(snapshot, time, output_folder, xylims,
+                plotting.scatter(snapshot, time, output_folder, xylims, rvir,
                                  first_binary_ids)
             else:
-                plotting.scatter(snapshot, time, output_folder, xylims)
+                plotting.scatter(snapshot, time, output_folder, xylims, rvir)
 
     plotting.radii(metrics, arguments)
