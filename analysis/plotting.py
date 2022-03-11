@@ -81,4 +81,22 @@ def radii(metrics, arguments):
     pyplot.xlabel("time")
     pyplot.ylabel("radius")
     pyplot.semilogy()
-    pyplot.savefig(arguments.output+"radii.png")
+    pyplot.savefig(arguments.output+"radii.svg", format='svg')
+    pyplot.clf()
+
+
+def number_of_binaries(metrics, arguments, t_rhi):
+    number_of_binaries = []
+
+    for binaries in metrics['binaries']:
+        number_of_binaries.append(len(binaries))
+
+    times = metrics['times']/t_rhi
+
+    pyplot.plot(times, number_of_binaries)
+    pyplot.xlabel("$t/t_rh,i$")
+    pyplot.ylabel("$n_b$")
+
+    pyplot.gca().set_aspect('equal')
+    pyplot.savefig(arguments.output+"number_of_binaries.svg", format='svg')
+    pyplot.clf()

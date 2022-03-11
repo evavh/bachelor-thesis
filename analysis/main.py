@@ -106,3 +106,4 @@ if __name__ == '__main__':
                 plotting.scatter(snapshot, time, output_folder, xylims, rvir)
 
     plotting.radii(metrics, arguments)
+    plotting.number_of_binaries(metrics, arguments, t_rhi)
