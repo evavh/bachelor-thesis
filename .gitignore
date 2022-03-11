@@ -16,3 +16,4 @@ rsyncify.sh
 testing/inputs/loadsnap_input.hdf5
 **/*.ignore
 Session.vim
+midterm-presentation/

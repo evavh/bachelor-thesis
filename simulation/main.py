@@ -80,6 +80,15 @@ def calculate_t_crc(core_density):
     return 1/under_sqrt.sqrt()
 
 
+def binding_energy(star1, star2):
+    mu = star1.mass*star2.mass/(star1.mass+star2.mass)
+    dr = (star2.position - star1.position).lengths()
+    dv = (star2.velocity - star1.velocity).lengths()
+    Eb = nbody_system.G*star1.mass*star2.mass/dr - 0.5*mu*dv*dv
+
+    return Eb
+
+
 def find_binaries(stars, minimum_Eb):
     G = nbody_system.G
     binding_energies = []
@@ -171,9 +180,13 @@ if __name__ == '__main__':
 
     binaries = []
     binding_energies = []
+    binary_queue = []
+    first_binary = None
+    new_first_needed = False
 
     while True:
-        flushed_print(f"First star vx at t={time.number}: {stars[0].vx.number}")
+        flushed_print(
+            f"First star vx at t={time.number}: {stars[0].vx.number}")
         print(f"Saving metrics and snapshot at t={time.number}")
         metrics = update_metrics(metrics, time, stars, gravity, binaries,
                                  binding_energies, kT)
@@ -205,8 +218,34 @@ if __name__ == '__main__':
         print("Starting binary finding.")
 
         binaries, binding_energies = find_binaries(stars, minimum_Eb)
-        if len(binaries) > 0 and params.t_end is None:
-            params.t_end = time + (20 | nbody_system.time)
+        if len(binaries) > 0:
+            for binary in binaries:
+                binary_queue.append((binary, time))
+                print((f"Added {binary[0].id.number, binary[1].id.number} "
+                       f"to queue, now {len(binary_queue)} long."))
+
+            if params.t_end is None:
+                first_binary = binaries[0]
+                params.t_end = time + (20 | nbody_system.time)
+                print("Setting t_end")
+
+        for binary, time in binary_queue:
+            if binding_energy(binary[0], binary[1]) < 0 | nbody_system.energy:
+                binary_queue.remove((binary, time))
+                print((f"Removed {binary[0].id.number, binary[1].id.number} "
+                       f"from queue, now {len(binary_queue)} long."))
+
+                if binary == first_binary:
+                    new_first_needed = True
+                    print("This was the first binary!")
+
+        if new_first_needed:
+            first_binary = binary_queue[0][0]
+            print((f"{first_binary[0].id.number, first_binary[1].id.number} "
+                   "is now the new first binary."))
+            print(f"End time was {params.t_end}")
+            params.t_end = binary_queue[0][1] + (20 | nbody_system.time)
+            print(f"New end time: {params.t_end}")
 
     gravity.stop()
 
