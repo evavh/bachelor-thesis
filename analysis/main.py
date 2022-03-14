@@ -108,3 +108,4 @@ if __name__ == '__main__':
 
     plotting.radii(metrics, arguments)
     plotting.number_of_binaries(metrics, arguments, t_rhi)
+    plotting.integration_time(metrics, arguments)

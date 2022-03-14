@@ -100,3 +100,14 @@ def number_of_binaries(metrics, arguments, t_rhi):
     pyplot.gca().set_aspect('equal')
     pyplot.savefig(arguments.output+"number_of_binaries.svg", format='svg')
     pyplot.clf()
+
+
+def integration_time(metrics, arguments):
+    times = metrics['times'].value_in(nbody_system.time)
+
+    pyplot.plot(times[1:], metrics['integration_time'][1:])
+    pyplot.xlabel("t")
+    pyplot.ylabel("Integration time [s]")
+
+    pyplot.savefig(arguments.output+"integration_time.svg", format='svg')
+    pyplot.clf()

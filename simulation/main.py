@@ -5,6 +5,7 @@ import math
 import numpy
 import argparse
 import sys
+import datetime
 
 from amuse.units import nbody_system
 from amuse.units import units
@@ -114,7 +115,7 @@ def find_binaries(stars, minimum_Eb):
 
 
 def update_metrics(metrics, time, stars, gravity, binaries,
-                   binding_energies, kT):
+                   binding_energies, kT, integration_time):
     metrics["times"].append(time)
 
     metrics["binaries"].append(binaries)
@@ -146,6 +147,8 @@ def update_metrics(metrics, time, stars, gravity, binaries,
     metrics["total_binary_energy"].append(gravity.get_binary_energy())
 
     metrics['t_crc'].append(calculate_t_crc(core_density))
+
+    metrics['integration_time'].append(integration_time)
 
     return metrics
 
@@ -184,12 +187,14 @@ if __name__ == '__main__':
     first_binary = None
     new_first_needed = False
 
+    integration_time = 0
+
     while True:
         flushed_print(
             f"First star vx at t={time.number}: {stars[0].vx.number}")
         print(f"Saving metrics and snapshot at t={time.number}")
         metrics = update_metrics(metrics, time, stars, gravity, binaries,
-                                 binding_energies, kT)
+                                 binding_energies, kT, integration_time)
         file_io.pickle_object(metrics, "cluster_metrics.pkl", params)
 
         print(f"First star at t={time.number}: {stars[0]}")
@@ -199,6 +204,8 @@ if __name__ == '__main__':
             break
 
         print(f"Starting integration at t={time.number}")
+        integration_start_time = datetime.datetime.now()
+
         t_crc = metrics['t_crc'][-1]
         if params.variable_delta:
             time += 0.01*t_crc
@@ -215,6 +222,10 @@ if __name__ == '__main__':
         channel.copy()
 
         print(f"Finished integrating until t={time.number}")
+        integration_time = datetime.datetime.now() - integration_start_time
+        integration_time = integration_time.total_seconds()
+        print(f"{integration_time}s elapsed.")
+
         print("Starting binary finding.")
 
         binaries, binding_energies = find_binaries(stars, minimum_Eb)
