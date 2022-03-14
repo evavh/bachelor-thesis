@@ -77,8 +77,9 @@ if __name__ == '__main__':
         taus = numpy.cumsum(params.delta_t/times_crc)
 
     first_binary_ids, t_bin = find_first_binary(snapshots, metrics, t_rhi)
-    first_binary = ids_to_stars(snapshots[0], first_binary_ids)
     binaries_found = (first_binary_ids is not None)
+    if binaries_found:
+        first_binary = ids_to_stars(snapshots[0], first_binary_ids)
 
     print(f"t_max = {round(t_max/t_rhi, 1)} t_rhi")
 
