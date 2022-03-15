@@ -231,9 +231,10 @@ if __name__ == '__main__':
         binaries, binding_energies = find_binaries(stars, minimum_Eb)
         if len(binaries) > 0:
             for binary in binaries:
-                binary_queue.append((binary, time))
-                print((f"Added {binary[0].id.number, binary[1].id.number} "
-                       f"to queue, now {len(binary_queue)} long."))
+                if (binary, time) not in binary_queue:
+                    binary_queue.append((binary, time))
+                    print((f"Added {binary[0].id.number, binary[1].id.number} "
+                           f"to queue, now {len(binary_queue)} long."))
 
             if params.t_end is None:
                 first_binary = binaries[0]
