@@ -190,20 +190,20 @@ if __name__ == '__main__':
     integration_time = 0
 
     while True:
-        flushed_print(
-            f"First star vx at t={time.number}: {stars[0].vx.number}")
-        print(f"Saving metrics and snapshot at t={time.number}")
+        flushed_print((f"First star vx at t={time.number}: "
+                       f"{stars[0].vx.number}"))
+        flushed_print(f"Saving metrics and snapshot at t={time.number}")
         metrics = update_metrics(metrics, time, stars, gravity, binaries,
                                  binding_energies, kT, integration_time)
         file_io.pickle_object(metrics, "cluster_metrics.pkl", params)
 
-        print(f"First star at t={time.number}: {stars[0]}")
+        flushed_print(f"First star at t={time.number}: {stars[0]}")
         file_io.pickle_object(stars, f"snapshot_{time}.pkl", params)
 
         if params.t_end is not None and time >= params.t_end:
             break
 
-        print(f"Starting integration at t={time.number}")
+        flushed_print(f"Done saving, starting integration at t={time.number}")
         integration_start_time = datetime.datetime.now()
 
         t_crc = metrics['t_crc'][-1]
@@ -226,7 +226,7 @@ if __name__ == '__main__':
         integration_time = integration_time.total_seconds()
         print(f"{integration_time}s elapsed.")
 
-        print("Starting binary finding.")
+        flushed_print("Starting binary finding.")
 
         binaries, binding_energies = find_binaries(stars, minimum_Eb)
         if len(binaries) > 0:
