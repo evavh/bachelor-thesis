@@ -19,29 +19,28 @@ def stars_to_ids(stars):
     return ids
 
 
-def binary_wont_dissolve(snapshots, starting_snap, candidate_ids):
-    for snapshot in snapshots[starting_snap:]:
-        stars = ids_to_stars(snapshot, candidate_ids)
-        if formulas.binding_energy(stars[0], stars[1])\
-                < 0 | nbody_system.energy:
-            return False
-    return True
-
-
 def find_first_binary(snapshots, metrics, t_rhi):
-    for index, time, binaries in zip(range(len(metrics['times'])),
-                                     metrics['times'], metrics['binaries']):
-        for candidate in binaries:
-            candidate_ids = stars_to_ids(candidate)
-            if binary_wont_dissolve(snapshots, index, candidate_ids):
-                first_binary_ids = candidate_ids
-                t_bin = time
+    binaries_found = False
+    first_binary = None
+    first_binary_ids = None
+    t_bin = None
 
-                print(f"The first hard enough binary is {first_binary_ids}")
-                print((f"It was found at t = {t_bin.number} = "
-                       f"{round(t_bin/t_rhi, 1)} t_rhi."))
+    for time, binaries in zip(metrics['times'], metrics['binaries']):
+        if binaries != [] and not binaries_found:
+            binaries_found = True
+            first_binary = binaries[0]
+            first_binary_ids = (first_binary[0].id.number,
+                                first_binary[1].id.number)
+            t_bin = time
 
-                return first_binary_ids, t_bin
+            print(f"The first binary is {first_binary_ids}")
+            print((f"It was found at t = {t_bin.number} = "
+                   f"{round(t_bin/t_rhi, 1)} t_rhi."))
+            if len(binaries) > 1:
+                print((f"NOTE: {len(binaries)-1} more were found at this"
+                       " time!"))
+
+            return first_binary_ids, t_bin
 
     print("No binaries found.")
     return None, None
