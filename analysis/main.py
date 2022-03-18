@@ -76,6 +76,19 @@ if __name__ == '__main__':
     else:
         taus = numpy.cumsum(params.delta_t/times_crc)
 
+    E_tot_unit = numpy.array(metrics['potential_energy']
+                             + metrics['kinetic_energy']
+                             + metrics['total_binary_energy'])
+    E_tot = []
+    for E in E_tot_unit:
+        E_tot.append(E.value_in(nbody_system.energy))
+    E_tot = numpy.array(E_tot)
+
+    dEs = (E_tot[0] - E_tot)/E_tot
+
+    for t, dE in zip(metrics['times'], dEs):
+        print(t.number, dE)
+
     first_binary_ids, t_bin = find_first_binary(snapshots, metrics, t_rhi)
     binaries_found = (first_binary_ids is not None)
     if binaries_found:
