@@ -83,7 +83,7 @@ if __name__ == '__main__':
         E_tot.append(E.value_in(nbody_system.energy))
     E_tot = numpy.array(E_tot)
 
-    dEs = (E_tot[0] - E_tot)/E_tot
+    dEs = (E_tot - E_tot[0])/E_tot[0]
 
     for t, dE in zip(metrics['times'], dEs):
         print(t.number, dE)
