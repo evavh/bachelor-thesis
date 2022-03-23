@@ -34,7 +34,7 @@ def find_first_binary(snapshots, metrics, t_rhi):
             t_bin = time
 
             print(f"The first binary is {first_binary_ids}")
-            print((f"It was found at t = {t_bin.number} = "
+            print((f"It has reached 10kT by t = {t_bin.number} = "
                    f"{round(t_bin/t_rhi, 1)} t_rhi."))
             if len(binaries) > 1:
                 print((f"NOTE: {len(binaries)-1} more were found at this"
@@ -75,10 +75,16 @@ if __name__ == '__main__':
     else:
         taus = numpy.cumsum(params.delta_t/times_crc)
 
-    first_binary_ids, t_bin = find_first_binary(snapshots, metrics, t_rhi)
+    first_binary_ids, t_bin_10 = find_first_binary(snapshots, metrics, t_rhi)
     binaries_found = (first_binary_ids is not None)
-    if binaries_found:
-        first_binary = ids_to_stars(snapshots[0], first_binary_ids)
+
+    for snapshot, time in zip(snapshots, metrics['times']):
+        first_binary = ids_to_stars(snapshot, first_binary_ids)
+        if formulas.binding_energy(*first_binary) > 0 | nbody_system.energy:
+            t_bin_0 = time
+            print((f"It has formed by t = {t_bin_0.number} = "
+                   f"{round(t_bin_0/t_rhi, 1)} t_rhi."))
+            break
 
     print(f"t_max = {round(t_max/t_rhi, 1)} t_rhi")
 
