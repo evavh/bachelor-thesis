@@ -186,15 +186,24 @@ if __name__ == '__main__':
     binding_energies = []
     integration_time = 0
 
+    E0 = gravity.kinetic_energy + gravity.potential_energy + \
+        gravity.get_binary_energy()
+    max_dE = 0
+
     while True:
-        flushed_print((f"First star vx at t={time.number}: "
-                       f"{stars[0].vx.number}"))
         flushed_print(f"Saving metrics and snapshot at t={time.number}")
         metrics = update_metrics(metrics, time, stars, gravity, binaries,
                                  binding_energies, kT, integration_time)
         file_io.pickle_object(metrics, "cluster_metrics.pkl", params)
 
-        flushed_print(f"First star at t={time.number}: {stars[0]}")
+        E_tot = gravity.kinetic_energy + gravity.potential_energy + \
+            gravity.get_binary_energy()
+
+        dE = (E_tot - E0)/E0
+        if dE > max_dE:
+            max_dE = dE
+        print(f"dE = {dE}")
+
         file_io.pickle_object(stars, f"snapshot_{time}.pkl", params)
 
         if params.t_end is not None and time >= params.t_end:
@@ -231,6 +240,7 @@ if __name__ == '__main__':
             print(f"Set t_end to {params.t_end}")
 
     gravity.stop()
+    print(f"Maximum dE = {max_dE}")
 
     scatterplot(stars, params.output_folder+"final_state.png")
     write_set_to_file(stars, params.output_folder+"final_state.csv", "csv")
