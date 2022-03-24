@@ -111,3 +111,24 @@ def integration_time(metrics, arguments):
 
     pyplot.savefig(arguments.output+"integration_time.svg", format='svg')
     pyplot.clf()
+
+
+def N_core(snapshots, metrics, arguments):
+    density_centres = metrics['density_centre']
+    core_radii = metrics['rcore']
+    times = metrics['times']
+
+    N_core = []
+
+    for snapshot, density_centre, core_radius in zip(snapshots,
+                                                     density_centres,
+                                                     core_radii):
+        core_stars = main.stars_in_area(snapshot, density_centre, core_radius)
+        N_core.append(len(core_stars))
+
+    pyplot.plot(times.number, N_core)
+    pyplot.xlabel("t")
+    pyplot.ylabel("Number of stars in the core")
+
+    pyplot.savefig(arguments.output+"N_core.svg", format='svg')
+    pyplot.clf()
