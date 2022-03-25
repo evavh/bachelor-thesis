@@ -1,6 +1,8 @@
 from amuse.units import nbody_system
 
 import numpy
+import itertools
+import datetime
 
 import input_output
 import formulas
@@ -94,6 +96,8 @@ if __name__ == '__main__':
     if 0.0 not in metrics_by_time:
         print("t=0.0 not found, please provide original run data with -og")
 
+    kT = 1/(6*params.n)
+    t_min = metrics['times'][0]
     t_max = metrics['times'][-1]
     t_rhi = formulas.t_rh(params.n, metrics_by_time[0.0]['r50pc'],
                           nbody_system.G, 1 | nbody_system.mass)
@@ -107,15 +111,54 @@ if __name__ == '__main__':
     first_binary_ids, t_bin_10 = find_first_binary(snapshots, metrics, t_rhi)
     binaries_found = (first_binary_ids is not None)
 
+    t_bin_0 = None
+    Eb = []
     for snapshot, time in zip(snapshots, metrics['times']):
         first_binary = ids_to_stars(snapshot, first_binary_ids)
         if formulas.binding_energy(*first_binary) > 0 | nbody_system.energy:
-            t_bin_0 = time
-            print((f"It has formed by t = {t_bin_0.number} = "
-                   f"{round(t_bin_0/t_rhi, 1)} t_rhi."))
-            break
+            if t_bin_0 is None:
+                t_bin_0 = time
+                print((f"It has formed by t = {t_bin_0.number} = "
+                       f"{round(t_bin_0/t_rhi, 1)} t_rhi."))
+
+        Eb.append(formulas.binding_energy(*first_binary)
+                  .value_in(nbody_system.energy))
+
+    Eb = numpy.array(Eb)/kT
 
     print(f"t_max = {round(t_max/t_rhi, 1)} t_rhi")
+
+    density_centre = metrics_by_time[223.0]['density_centre']
+    core_radius = metrics_by_time[223.0]['rcore']
+    core_stars = stars_in_area(snapshots[-6], density_centre, core_radius)
+    print(f"There are {len(core_stars)} stars in the core at t_bin.")
+
+    core_star_ids = stars_to_ids(core_stars)
+    star_works = {}
+    total_star_works = {}
+    print("Starting work function calculation.")
+    start_of_calc = datetime.datetime.now()
+
+    start = -14
+    stop = -5
+    t_min = metrics['times'][start-1]
+
+    for star_id in core_star_ids:
+        key = star_id.number
+        star_works[key], total_star_works[key] = \
+            formulas.work_function(snapshots, metrics, first_binary_ids,
+                                   star_id, t_min, t_bin_10)
+        star_works[key] /= kT
+        total_star_works[key] /= kT
+    calc_time_s = datetime.datetime.now() - start_of_calc
+    calc_time_s = calc_time_s.total_seconds()
+    print(f"Work function calculation finished after {calc_time_s} s.")
+
+    star_works = dict(sorted(star_works.items(),
+                             key=lambda x: abs(total_star_works[x[0]]),
+                             reverse=True))
+    print(total_star_works)
+    top_stars = dict(itertools.islice(star_works.items(), 10))
 
     if arguments.scatter:
         folder_name = "scatter"
@@ -144,3 +187,4 @@ if __name__ == '__main__':
     plotting.number_of_binaries(metrics, arguments, t_rhi)
     plotting.integration_time(metrics, arguments)
     plotting.N_core(snapshots, metrics, arguments)
+    plotting.work_function(top_stars, metrics, arguments, Eb, start, stop)

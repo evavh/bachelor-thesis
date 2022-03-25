@@ -1,5 +1,6 @@
 from amuse.units import nbody_system
 from matplotlib import pyplot
+import numpy
 
 import formulas
 import main
@@ -131,4 +132,27 @@ def N_core(snapshots, metrics, arguments):
     pyplot.ylabel("Number of stars in the core")
 
     pyplot.savefig(arguments.output+"N_core.svg", format='svg')
+    pyplot.clf()
+
+
+def work_function(work_for_star, metrics, arguments, Eb, start, stop):
+    times = metrics['times'][start:stop]
+
+    work_for_star.pop(34.0)
+    for star in work_for_star:
+        pyplot.plot(times.value_in(nbody_system.time), work_for_star[star],
+                    label=str(star))
+
+    pyplot.plot(times.value_in(nbody_system.time),
+                Eb[start:stop], label="The binary")
+    print(work_for_star.values())
+    pyplot.plot(times.value_in(nbody_system.time),
+                numpy.sum(list(work_for_star.values()), axis=0),
+                label="Total work by top stars")
+
+    pyplot.xlabel("t")
+    pyplot.ylabel("Work on / Eb of binary [kT]")
+    pyplot.legend()
+
+    pyplot.savefig(arguments.output+"work_function.svg", format='svg')
     pyplot.clf()
