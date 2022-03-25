@@ -71,10 +71,9 @@ def work_function(snapshots, metrics, tuple_ids, star_id,
                 star = particle
 
         power = power_function(tuple, star) * (1.0 | nbody_system.time)
-        power_functions.append(power)
+        power_functions.append(power.value_in(nbody_system.energy))
 
     work = numpy.cumsum(power_functions)
-    assert (work[0].unit == nbody_system.energy),\
-        f"[work]: {work[0].unit}, [energy]: {nbody_system.energy}"
+    total_work = numpy.sum(work)
 
-    return work
+    return work, total_work
