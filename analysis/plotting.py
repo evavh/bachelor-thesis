@@ -144,7 +144,6 @@ def work_function(work_for_star, metrics, arguments, Eb, start, stop):
 
     pyplot.plot(times.value_in(nbody_system.time),
                 Eb[start:stop], label="The binary")
-    print(work_for_star.values())
     pyplot.plot(times.value_in(nbody_system.time),
                 numpy.sum(list(work_for_star.values()), axis=0),
                 label="Total work by top stars")

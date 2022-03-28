@@ -20,6 +20,8 @@ def parse_arguments():
                         action='store_true')
     parser.add_argument("--scatter_core", help="generate scatter of core.",
                         action='store_true')
+    parser.add_argument("--load_work", help="load work data from pickle.",
+                        action='store_true')
     parser.add_argument("-og", "--original_run", help="run from t0",
                         type=str)
     arguments = parser.parse_args()
