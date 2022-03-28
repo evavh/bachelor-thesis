@@ -21,6 +21,15 @@ def stars_to_ids(stars):
     return ids
 
 
+def time_to_index(time, metrics):
+    index = None
+    for i, t in zip(range(len(metrics['times'])), metrics['times']):
+        if t >= time and index is None:
+            index = i
+
+    return index
+
+
 def limits_from_radius(radius, density_centre):
     x_min = density_centre[0] - radius
     x_max = density_centre[0] + radius
@@ -128,9 +137,12 @@ if __name__ == '__main__':
 
     print(f"t_max = {round(t_max/t_rhi, 1)} t_rhi")
 
-    density_centre = metrics_by_time[223.0]['density_centre']
-    core_radius = metrics_by_time[223.0]['rcore']
-    core_stars = stars_in_area(snapshots[-6], density_centre, core_radius)
+    density_centre = metrics_by_time[t_bin_0.number]['density_centre']
+    core_radius = metrics_by_time[t_bin_0.number]['rcore']
+
+    t_bin_0_index = time_to_index(t_bin_0, metrics)
+    core_stars = stars_in_area(snapshots[t_bin_0_index], density_centre,
+                               core_radius)
     print(f"There are {len(core_stars)} stars in the core at t_bin.")
 
     core_star_ids = stars_to_ids(core_stars)
@@ -139,15 +151,17 @@ if __name__ == '__main__':
     print("Starting work function calculation.")
     start_of_calc = datetime.datetime.now()
 
-    start = -14
-    stop = -5
-    t_min = metrics['times'][start-1]
+    work_start = -14
+    t_min = metrics['times'][work_start-1]
+
+    work_start_i = time_to_index(t_min, metrics)
+    work_end_i = time_to_index(t_bin_10, metrics)
 
     for star_id in core_star_ids:
         key = star_id.number
         star_works[key], total_star_works[key] = \
             formulas.work_function(snapshots, metrics, first_binary_ids,
-                                   star_id, t_min, t_bin_10)
+                                   star_id, work_start_i, work_end_i)
         star_works[key] /= kT
         total_star_works[key] /= kT
     calc_time_s = datetime.datetime.now() - start_of_calc
@@ -187,4 +201,5 @@ if __name__ == '__main__':
     plotting.number_of_binaries(metrics, arguments, t_rhi)
     plotting.integration_time(metrics, arguments)
     plotting.N_core(snapshots, metrics, arguments)
-    plotting.work_function(top_stars, metrics, arguments, Eb, start, stop)
+    plotting.work_function(top_stars, metrics, arguments, Eb, work_start_i,
+                           work_end_i)

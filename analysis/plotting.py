@@ -138,7 +138,6 @@ def N_core(snapshots, metrics, arguments):
 def work_function(work_for_star, metrics, arguments, Eb, start, stop):
     times = metrics['times'][start:stop]
 
-    work_for_star.pop(34.0)
     for star in work_for_star:
         pyplot.plot(times.value_in(nbody_system.time), work_for_star[star],
                     label=str(star))

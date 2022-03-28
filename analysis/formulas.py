@@ -50,17 +50,7 @@ def power_function(tuple, star):
 
 
 def work_function(snapshots, metrics, tuple_ids, star_id,
-                  start_time, end_time):
-    start_index = None
-    for index, snapshot, time in zip(range(len(snapshots)), snapshots,
-                                     metrics['times']):
-        if time >= start_time and start_index is None:
-            start_index = index
-
-        if time >= end_time:
-            end_index = index
-            break
-
+                  start_index, end_index):
     power_functions = []
     for snapshot in snapshots[start_index:end_index]:
         tuple = Particles(0)
