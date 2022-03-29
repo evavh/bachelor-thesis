@@ -87,6 +87,43 @@ def find_first_binary(snapshots, metrics, t_rhi):
     return None, None
 
 
+def find_core_stars(metrics, metrics_by_time, t_bin_0):
+    density_centre = metrics_by_time[t_bin_0.number]['density_centre']
+    core_radius = metrics_by_time[t_bin_0.number]['rcore']
+
+    t_bin_0_index = time_to_index(t_bin_0, metrics)
+    core_stars = stars_in_area(snapshots[t_bin_0_index], density_centre,
+                               core_radius)
+    print(f"There are {len(core_stars)} stars in the core at t_bin.")
+
+    core_star_ids = stars_to_ids(core_stars)
+    return core_star_ids
+
+
+def calculate_work(snapshots, first_binary_ids, work_start_i, work_end_i):
+    star_works = {}
+    total_star_works = {}
+    print("Starting work function calculation.")
+    start_of_calc = datetime.datetime.now()
+
+    for star_id in core_star_ids:
+        key = star_id.number
+        star_works[key], total_star_works[key] = \
+            formulas.work_function(snapshots, metrics, first_binary_ids,
+                                   star_id, work_start_i, work_end_i)
+        star_works[key] /= kT
+        total_star_works[key] /= kT
+    calc_time_s = datetime.datetime.now() - start_of_calc
+    calc_time_s = calc_time_s.total_seconds()
+    print(f"Work function calculation finished after {calc_time_s} s.")
+
+    star_works = dict(sorted(star_works.items(),
+                             key=lambda x: abs(total_star_works[x[0]]),
+                             reverse=True))
+
+    return star_works, total_star_works
+
+
 if __name__ == '__main__':
     arguments = input_output.parse_arguments()
 
@@ -145,38 +182,14 @@ if __name__ == '__main__':
         work_start_i, work_end_i = pickle.load(open(arguments.output +
                                                     "work_indexes.pkl", 'rb'))
     else:
-        density_centre = metrics_by_time[t_bin_0.number]['density_centre']
-        core_radius = metrics_by_time[t_bin_0.number]['rcore']
-
-        t_bin_0_index = time_to_index(t_bin_0, metrics)
-        core_stars = stars_in_area(snapshots[t_bin_0_index], density_centre,
-                                   core_radius)
-        print(f"There are {len(core_stars)} stars in the core at t_bin.")
-
-        core_star_ids = stars_to_ids(core_stars)
-        star_works = {}
-        total_star_works = {}
-        print("Starting work function calculation.")
-        start_of_calc = datetime.datetime.now()
+        core_star_ids = find_core_stars(metrics, metrics_by_time, t_bin_0)
 
         work_start_i = time_to_index(t_min, metrics)
         work_end_i = time_to_index(t_bin_10, metrics)
 
-        for star_id in core_star_ids:
-            key = star_id.number
-            star_works[key], total_star_works[key] = \
-                formulas.work_function(snapshots, metrics, first_binary_ids,
-                                       star_id, work_start_i, work_end_i)
-            star_works[key] /= kT
-            total_star_works[key] /= kT
-        calc_time_s = datetime.datetime.now() - start_of_calc
-        calc_time_s = calc_time_s.total_seconds()
-        print(f"Work function calculation finished after {calc_time_s} s.")
-
-        star_works = dict(sorted(star_works.items(),
-                                 key=lambda x: abs(total_star_works[x[0]]),
-                                 reverse=True))
-
+        star_works, total_star_works = calculate_work(snapshots,
+                                                      first_binary_ids,
+                                                      work_start_i, work_end_i)
         pickle.dump(star_works, open(arguments.output+"star_works.pkl", "wb"))
         pickle.dump(total_star_works,
                     open(arguments.output+"total_star_works.pkl", "wb"))
