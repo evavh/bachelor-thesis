@@ -42,19 +42,39 @@ def parse_arguments():
                         default=None, type=str)
     parser.add_argument("-b", "--minimum_Eb_kT", help="minimum binding E / kT",
                         default=10, type=float)
+    parser.add_argument("-r", "--reverse", help="run the sim in reverse",
+                        action='store_true')
 
-    parameters = parser.parse_args()
+    params = parser.parse_args()
 
-    parameters.delta_t = parameters.delta_t | nbody_system.time
-    if parameters.t_end is not None:
-        parameters.t_end = parameters.t_end | nbody_system.time
-    if parameters.start_time is not None:
-        parameters.start_time = parameters.start_time | nbody_system.time
+    if params.reverse:
+        print("Running a reversed simulation.")
+        assert params.t_end is not None, \
+            "When reversed there must be an end time."
+        assert params.start_time is not None, \
+            "When reversed there must be a start time."
+        assert params.start_time > params.t_end, \
+            "When reversed start time must be later than end time."
 
-    if not parameters.output_folder.endswith('/'):
-        parameters.output_folder += '/'
+        params.t_end = params.start_time - params.t_end \
+            + params.start_time
+        print(f"Set end time to {params.t_end} for the integrator's sake.")
+    elif params.start_time is not None and params.t_end is not None:
+        assert params.start_time < params.t_end, \
+            "When not reversed start time must be before end time."
 
-    return parameters
+    params.delta_t = params.delta_t | nbody_system.time
+    if params.t_end is not None:
+        params.t_end = params.t_end | nbody_system.time
+    if params.start_time is not None:
+        assert params.snapshot_input is not None, \
+            "When there is a start time there must be snapshots."
+        params.start_time = params.start_time | nbody_system.time
+
+    if not params.output_folder.endswith('/'):
+        params.output_folder += '/'
+
+    return params
 
 
 def set_random_seed(random_seed):
@@ -173,8 +193,10 @@ if __name__ == '__main__':
     kT = 1/(6*params.n)
     minimum_Eb = params.minimum_Eb_kT * kT
 
-    flushed_print("Starting simulation setup.")
+    flushed_print("\nStarting simulation setup.")
     stars, time = setting_up.initialize_stars(params, CONSTS)
+    if params.reverse:
+        stars = setting_up.reverse_velocities(stars)
     gravity = setting_up.setup_integrator(stars, CONSTS)
     gravity.parameters.begin_time = time
 
@@ -190,10 +212,26 @@ if __name__ == '__main__':
         gravity.get_binary_energy()
     max_dE = 0
 
+    print("")
+
     while True:
-        flushed_print(f"Saving metrics and snapshot at t={time.number}")
-        metrics = update_metrics(metrics, time, stars, gravity, binaries,
-                                 binding_energies, kT, integration_time)
+        reverse_time = params.start_time - (time - params.start_time)
+
+        if params.reverse:
+            print(f"Saving metrics and snapshot at t={reverse_time.number}")
+            flushed_print((f"This is {time.number} in integrator time, "
+                           f"with start time {params.start_time.number}"))
+            metrics = update_metrics(metrics, reverse_time, stars, gravity,
+                                     binaries, binding_energies, kT,
+                                     integration_time)
+            file_io.pickle_object(stars, f"snapshot_{reverse_time}.pkl",
+                                  params)
+        else:
+            flushed_print(f"Saving metrics and snapshot at t={time.number}")
+            metrics = update_metrics(metrics, time, stars, gravity, binaries,
+                                     binding_energies, kT, integration_time)
+            file_io.pickle_object(stars, f"snapshot_{time}.pkl", params)
+
         file_io.pickle_object(metrics, "cluster_metrics.pkl", params)
 
         E_tot = gravity.kinetic_energy + gravity.potential_energy + \
@@ -204,12 +242,11 @@ if __name__ == '__main__':
             max_dE = dE
         print(f"dE = {dE}")
 
-        file_io.pickle_object(stars, f"snapshot_{time}.pkl", params)
-
         if params.t_end is not None and time >= params.t_end:
             break
 
-        flushed_print(f"Done saving, starting integration at t={time.number}")
+        flushed_print(("\nDone saving, starting integration at "
+                       f"t={time.number} (integrator time)"))
         integration_start_time = datetime.datetime.now()
 
         t_crc = metrics['t_crc'][-1]
@@ -227,7 +264,7 @@ if __name__ == '__main__':
                 break
         channel.copy()
 
-        print(f"Finished integrating until t={time.number}")
+        print(f"Finished integrating until t={time.number} (integrator time)")
         integration_time = datetime.datetime.now() - integration_start_time
         integration_time = integration_time.total_seconds()
         print(f"{integration_time}s elapsed.")
@@ -240,7 +277,7 @@ if __name__ == '__main__':
             print(f"Set t_end to {params.t_end}")
 
     gravity.stop()
-    print(f"Maximum dE = {max_dE}")
+    print(f"\nMaximum dE = {max_dE}")
 
     scatterplot(stars, params.output_folder+"final_state.png")
     write_set_to_file(stars, params.output_folder+"final_state.csv", "csv")

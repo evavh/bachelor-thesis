@@ -38,7 +38,6 @@ def new_cluster_model(N, eps2):
 def find_snapshot(params):
     start_time = params.start_time
     for filename in os.listdir(params.snapshot_input):
-        print(f"Checking if {filename} is the snapshot for {start_time}")
         if filename.endswith('.pkl') and str(start_time) in filename:
             stars = file_io.unpickle_object(filename, params)
             return stars, start_time
@@ -53,6 +52,13 @@ def initialize_stars(params, CONSTS):
         stars, time = find_snapshot(params)
 
     return stars, time
+
+
+def reverse_velocities(stars):
+    stars.vx *= -1
+    stars.vy *= -1
+    stars.vz *= -1
+    return stars
 
 
 def setup_integrator(stars, CONSTS):
