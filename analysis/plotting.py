@@ -29,7 +29,9 @@ def scatter(snapshot, time, output_folder, xylims, rvir,
     if not output_folder.endswith("/"):
         output_folder += "/"
 
-    first_binary = main.ids_to_stars(snapshot, first_binary_ids)
+    first_binary = None
+    if first_binary_ids is not None:
+        first_binary = main.ids_to_stars(snapshot, first_binary_ids)
 
     x_of_stars = snapshot.x/rvir
     y_of_stars = snapshot.y/rvir
@@ -61,9 +63,12 @@ def scatter(snapshot, time, output_folder, xylims, rvir,
 
     N = len(snapshot)
     kT = 1/(6*N)
-    Eb = formulas.binding_energy(first_binary[0], first_binary[1])
-    pyplot.suptitle((f"t = {time.number} (nbody time), "
-                     f"Eb = {round(Eb.number/kT, 1)} kT"))
+    if first_binary is None:
+        pyplot.suptitle(f"t = {time.number} (nbody time)")
+    else:
+        Eb = formulas.binding_energy(first_binary[0], first_binary[1])
+        pyplot.suptitle((f"t = {time.number} (nbody time), "
+                         f"Eb = {round(Eb.number/kT, 1)} kT"))
     pyplot.savefig(output_folder+str(time)+".svg", format='svg')
     pyplot.clf()
 

@@ -155,48 +155,53 @@ if __name__ == '__main__':
     else:
         taus = numpy.cumsum(params.delta_t/times_crc)
 
+    print(f"t_max = {t_max.number} = {round(t_max/t_rhi, 1)} t_rhi")
+
     first_binary_ids, t_bin_10 = find_first_binary(snapshots, metrics, t_rhi)
     binaries_found = (first_binary_ids is not None)
 
-    t_bin_0 = None
-    Eb = []
-    for snapshot, time in zip(snapshots, metrics['times']):
-        first_binary = ids_to_stars(snapshot, first_binary_ids)
-        if formulas.binding_energy(*first_binary) > 0 | nbody_system.energy:
-            if t_bin_0 is None:
-                t_bin_0 = time
-                print((f"It has formed by t = {t_bin_0.number} = "
-                       f"{round(t_bin_0/t_rhi, 1)} t_rhi."))
+    if binaries_found:
+        t_bin_0 = None
+        Eb = []
+        for snapshot, time in zip(snapshots, metrics['times']):
+            first_binary = ids_to_stars(snapshot, first_binary_ids)
+            if formulas.binding_energy(*first_binary) > 0 | nbody_system.energy:
+                if t_bin_0 is None:
+                    t_bin_0 = time
+                    print((f"It has formed by t = {t_bin_0.number} = "
+                           f"{round(t_bin_0/t_rhi, 1)} t_rhi."))
 
-        Eb.append(formulas.binding_energy(*first_binary)
-                  .value_in(nbody_system.energy))
+            Eb.append(formulas.binding_energy(*first_binary)
+                      .value_in(nbody_system.energy))
 
-    Eb = numpy.array(Eb)/kT
+        Eb = numpy.array(Eb)/kT
 
-    print(f"t_max = {t_max.number} = {round(t_max/t_rhi, 1)} t_rhi")
+        if arguments.load_work:
+            star_works = pickle.load(open(arguments.output+"star_works.pkl",
+                                          'rb'))
+            total_star_works = pickle.load(open(arguments.output +
+                                                "total_star_works.pkl", 'rb'))
+            work_start_i, work_end_i = pickle.load(open(arguments.output +
+                                                        "work_indexes.pkl",
+                                                        'rb'))
+        else:
+            core_star_ids = find_core_stars(metrics, metrics_by_time, t_bin_0)
 
-    if arguments.load_work:
-        star_works = pickle.load(open(arguments.output+"star_works.pkl", 'rb'))
-        total_star_works = pickle.load(open(arguments.output +
-                                            "total_star_works.pkl", 'rb'))
-        work_start_i, work_end_i = pickle.load(open(arguments.output +
-                                                    "work_indexes.pkl", 'rb'))
-    else:
-        core_star_ids = find_core_stars(metrics, metrics_by_time, t_bin_0)
+            work_start_i = time_to_index(t_min, metrics)
+            work_end_i = time_to_index(t_bin_10, metrics)
 
-        work_start_i = time_to_index(t_min, metrics)
-        work_end_i = time_to_index(t_bin_10, metrics)
+            star_works, total_star_works = calculate_work(snapshots,
+                                                          first_binary_ids,
+                                                          work_start_i,
+                                                          work_end_i)
+            pickle.dump(star_works, open(arguments.output+"star_works.pkl",
+                                         "wb"))
+            pickle.dump(total_star_works,
+                        open(arguments.output+"total_star_works.pkl", "wb"))
+            pickle.dump((work_start_i, work_end_i),
+                        open(arguments.output+"work_indexes.pkl", 'wb'))
 
-        star_works, total_star_works = calculate_work(snapshots,
-                                                      first_binary_ids,
-                                                      work_start_i, work_end_i)
-        pickle.dump(star_works, open(arguments.output+"star_works.pkl", "wb"))
-        pickle.dump(total_star_works,
-                    open(arguments.output+"total_star_works.pkl", "wb"))
-        pickle.dump((work_start_i, work_end_i),
-                    open(arguments.output+"work_indexes.pkl", 'wb'))
-
-    top_stars = dict(itertools.islice(star_works.items(), 10))
+        top_stars = dict(itertools.islice(star_works.items(), 10))
 
     if arguments.scatter:
         folder_name = "scatter"
