@@ -197,8 +197,7 @@ if __name__ == '__main__':
     stars, time = setting_up.initialize_stars(params, CONSTS)
     if params.reverse:
         stars = setting_up.reverse_velocities(stars)
-    gravity = setting_up.setup_integrator(stars, CONSTS)
-    gravity.parameters.begin_time = time
+    gravity = setting_up.setup_integrator(stars, CONSTS, time)
 
     channel = gravity.particles.new_channel_to(stars)
     stopping_condition = gravity.stopping_conditions.collision_detection
@@ -215,7 +214,10 @@ if __name__ == '__main__':
     print("")
 
     while True:
-        reverse_time = params.start_time - (time - params.start_time)
+        if params.reverse:
+            reverse_time = params.start_time - (time - params.start_time)
+        else:
+            reverse_time = None
 
         if params.reverse:
             print(f"Saving metrics and snapshot at t={reverse_time.number}")
