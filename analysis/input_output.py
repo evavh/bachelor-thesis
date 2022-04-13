@@ -1,5 +1,4 @@
 import os
-import pickle
 import argparse
 
 from amuse.units import nbody_system
@@ -34,42 +33,6 @@ def parse_arguments():
         arguments.original_run += "/"
 
     return arguments
-
-
-def load_snapshots(snapshot_dir):
-    snapshots = []
-    for filename in os.listdir(snapshot_dir):
-        if filename.endswith('.pkl') and "snapshot" in filename:
-            with open(snapshot_dir+filename, 'rb') as inputfile:
-                snapshots.append(pickle.load(inputfile))
-    return snapshots
-
-
-def load_data(arguments):
-    snapshots = load_snapshots(arguments.input)
-    print(f"Loaded snapshots of {len(snapshots)} timesteps.")
-
-    consts = pickle.load(open(arguments.input+"constants.pkl", "rb"))
-    print("Loaded constants:", list(consts.keys()))
-
-    params = pickle.load(open(arguments.input+"parameters.pkl", "rb"))
-    print("Loaded parameters:", list(vars(params).keys()))
-
-    metrics = pickle.load(open(arguments.input+"cluster_metrics.pkl", "rb"))
-    print("Loaded metrics:", list(metrics.keys()))
-
-    if arguments.original_run is not None:
-        og_metrics = pickle.load(open(arguments.original_run +
-                                      "cluster_metrics.pkl", "rb"))
-        print("Loaded original run metrics:", list(og_metrics.keys()))
-    else:
-        og_metrics = None
-
-    for key in metrics:
-        assert (len(metrics[key]) == len(snapshots)),\
-            f"len({key})={len(key)}, there are {len(snapshots)} snaps."
-
-    return snapshots, consts, params, metrics, og_metrics
 
 
 def metrics_to_time_key(metrics):

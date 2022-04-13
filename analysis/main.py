@@ -8,6 +8,7 @@ import pickle
 import input_output
 import formulas
 import plotting
+from data import Data
 
 
 def ids_to_stars(snapshot, ids):
@@ -87,7 +88,7 @@ def find_first_binary(snapshots, metrics, t_rhi):
     return None, None
 
 
-def find_core_stars(metrics, metrics_by_time, t_bin_0):
+def find_core_stars(snapshots, metrics, metrics_by_time, t_bin_0):
     density_centre = metrics_by_time[t_bin_0.number]['density_centre']
     core_radius = metrics_by_time[t_bin_0.number]['rcore']
 
@@ -100,7 +101,8 @@ def find_core_stars(metrics, metrics_by_time, t_bin_0):
     return core_star_ids
 
 
-def calculate_work(snapshots, first_binary_ids, work_start_i, work_end_i):
+def calculate_work(snapshots, metrics, first_binary_ids, work_start_i,
+                   work_end_i):
     star_works = {}
     total_star_works = {}
     print("Starting work function calculation.")
@@ -130,42 +132,44 @@ if __name__ == '__main__':
     input_output.create_directory(arguments.output)
     input_output.create_directory(arguments.input)
 
-    snapshots, consts, params, metrics, og_metrics = \
-        input_output.load_data(arguments)
+    data = Data(arguments)
     print('')
 
-    metrics_by_time = input_output.metrics_to_time_key(metrics)
+    metrics_by_time = input_output.metrics_to_time_key(data.metrics)
 
-    if og_metrics is not None:
-        t0_metrics = input_output.metrics_to_time_key(og_metrics)[0.0]
+    if data.og_metrics is not None:
+        t0_metrics = input_output.metrics_to_time_key(data.og_metrics)[0.0]
         metrics_by_time[0.0] = t0_metrics
 
     if 0.0 not in metrics_by_time:
         print("t=0.0 not found, please provide original run data with -og")
 
-    kT = 1/(6*params.n)
-    t_min = metrics['times'][0]
-    t_max = metrics['times'][-1]
-    t_rhi = formulas.t_rh(params.n, metrics_by_time[0.0]['r50pc'],
+    kT = 1/(6*data.params.n)
+    t_min = data.metrics['times'][0]
+    t_max = data.metrics['times'][-1]
+    t_rhi = formulas.t_rh(data.params.n, metrics_by_time[0.0]['r50pc'],
                           nbody_system.G, 1 | nbody_system.mass)
-    times_crc = metrics['t_crc']
+    times_crc = data.metrics['t_crc']
 
-    if params.variable_delta:
+    if data.params.variable_delta:
         taus = numpy.cumsum(numpy.full(len(times_crc), 0.01))
     else:
-        taus = numpy.cumsum(params.delta_t/times_crc)
+        taus = numpy.cumsum(data.params.delta_t/times_crc)
 
     print(f"t_max = {t_max.number} = {round(t_max/t_rhi, 1)} t_rhi")
 
-    first_binary_ids, t_bin_10 = find_first_binary(snapshots, metrics, t_rhi)
+    first_binary_ids, t_bin_10 = find_first_binary(data.snapshots,
+                                                   data.metrics,
+                                                   t_rhi)
     binaries_found = (first_binary_ids is not None)
 
     if binaries_found:
         t_bin_0 = None
         Eb = []
-        for snapshot, time in zip(snapshots, metrics['times']):
+        for snapshot, time in zip(data.snapshots, data.metrics['times']):
             first_binary = ids_to_stars(snapshot, first_binary_ids)
-            if formulas.binding_energy(*first_binary) > 0 | nbody_system.energy:
+            if formulas.binding_energy(*first_binary) \
+                    > 0 | nbody_system.energy:
                 if t_bin_0 is None:
                     t_bin_0 = time
                     print((f"It has formed by t = {t_bin_0.number} = "
@@ -185,12 +189,14 @@ if __name__ == '__main__':
                                                         "work_indexes.pkl",
                                                         'rb'))
         else:
-            core_star_ids = find_core_stars(metrics, metrics_by_time, t_bin_0)
+            core_star_ids = find_core_stars(data.snapshots, data.metrics,
+                                            metrics_by_time, t_bin_0)
 
-            work_start_i = time_to_index(t_min, metrics)
-            work_end_i = time_to_index(t_bin_10, metrics)
+            work_start_i = time_to_index(t_min, data.metrics)
+            work_end_i = time_to_index(t_bin_10, data.metrics)
 
-            star_works, total_star_works = calculate_work(snapshots,
+            star_works, total_star_works = calculate_work(data.snapshots,
+                                                          data.metrics,
                                                           first_binary_ids,
                                                           work_start_i,
                                                           work_end_i)
@@ -215,7 +221,7 @@ if __name__ == '__main__':
         output_folder = arguments.output+folder_name
         input_output.create_directory(output_folder)
 
-        for snapshot, time in zip(snapshots, metrics['times']):
+        for snapshot, time in zip(data.snapshots, data.metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
             xylims = plotting.get_xylim(metrics_by_time, time, radius_key)
             rvir = metrics_by_time[time.number]['rvir']
@@ -226,9 +232,9 @@ if __name__ == '__main__':
             else:
                 plotting.scatter(snapshot, time, output_folder, xylims, rvir)
 
-    plotting.radii(metrics, arguments)
-    plotting.number_of_binaries(metrics, arguments, t_rhi)
-    plotting.integration_time(metrics, arguments)
-    plotting.N_core(snapshots, metrics, arguments)
-    plotting.work_function(top_stars, metrics, arguments, Eb, work_start_i,
-                           work_end_i)
+    plotting.radii(data.metrics, arguments)
+    plotting.number_of_binaries(data.metrics, arguments, t_rhi)
+    plotting.integration_time(data.metrics, arguments)
+    plotting.N_core(data.snapshots, data.metrics, arguments)
+    plotting.work_function(top_stars, data.metrics, arguments, Eb,
+                           work_start_i, work_end_i)
