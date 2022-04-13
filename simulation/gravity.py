@@ -9,30 +9,24 @@ import setting_up
 
 class Gravity:
     def __init__(self, integrator, CONSTS, time, stars):
+        if integrator not in [Brutus, ph4]:
+            print(f"Invalid or unimplemented integrator: {integrator}")
+
+        self.integrator = integrator(number_of_workers=1, redirection="none")
+        self.integrator.initialize_code()
+
+        self.integrator.parameters.set_defaults()
+        self.integrator.parameters.begin_time = time
+
         if integrator == Brutus:
             print("Using Brutus")
-            self.integrator = Brutus(number_of_workers=1, redirection="none")
-
-            self.integrator.initialize_code()
-            self.integrator.parameters.set_defaults()
 
             self.integrator.parameters.bs_tolerance = CONSTS['bs_tolerance']
             word_length = 4*abs(math.log(CONSTS['bs_tolerance'], 10)) + 32
             self.integrator.parameters.word_length = word_length
-            self.integrator.parameters.begin_time = time
-
-            self.integrator.commit_parameters()
-
-            self.integrator.particles.add_particles(stars)
-            self.integrator.commit_particles()
-            print("Done setting up Brutus integrator")
 
         elif integrator == ph4:
             print("Using ph4")
-            self.integrator = ph4(number_of_workers=1, redirection="none")
-
-            self.integrator.initialize_code()
-            self.integrator.parameters.set_defaults()
 
             self.integrator.parameters.timestep_parameter = CONSTS['accuracy']
             self.integrator.parameters.initial_timestep_fac =\
@@ -40,12 +34,12 @@ class Gravity:
             self.integrator.parameters.epsilon_squared = \
                 CONSTS['epsilon_squared']
             self.integrator.parameters.use_gpu = 0
-            self.integrator.parameters.begin_time = time
 
-            self.integrator.particles.add_particles(stars)
-            self.integrator.commit_particles()
-        else:
-            print(f"Invalid or unimplemented integrator: {integrator}")
+        self.integrator.commit_parameters()
+
+        self.integrator.particles.add_particles(stars)
+        self.integrator.commit_particles()
+        self.channel = self.integrator.particles.new_channel_to(stars)
 
 
 if __name__ == '__main__':
