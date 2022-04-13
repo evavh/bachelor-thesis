@@ -138,8 +138,7 @@ if __name__ == '__main__':
     kT = 1/(6*data.params.n)
     t_min = data.metrics['times'][0]
     t_max = data.metrics['times'][-1]
-    t_rhi = formulas.t_rh(data.params.n, data.by_time()[0.0]['r50pc'],
-                          nbody_system.G, 1 | nbody_system.mass)
+    t_rhi = formulas.t_rh(data.params.n, data.by_time()[0.0]['r50pc'])
     times_crc = data.metrics['t_crc']
 
     if data.params.variable_delta:

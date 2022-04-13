@@ -5,7 +5,9 @@ from amuse.units import nbody_system
 from amuse.datamodel import Particles
 
 
-def t_rh(N, r_h, G, M):
+def t_rh(N, r_h):
+    G = nbody_system.G
+    M = 1 | nbody_system.mass
     return 0.138*N*r_h**(3/2)/(G**(1/2)*M**(1/2)*math.log(0.4*N))
 
 
