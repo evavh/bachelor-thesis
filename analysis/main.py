@@ -135,19 +135,10 @@ if __name__ == '__main__':
     data = Data(arguments)
     print('')
 
-    metrics_by_time = input_output.metrics_to_time_key(data.metrics)
-
-    if data.og_metrics is not None:
-        t0_metrics = input_output.metrics_to_time_key(data.og_metrics)[0.0]
-        metrics_by_time[0.0] = t0_metrics
-
-    if 0.0 not in metrics_by_time:
-        print("t=0.0 not found, please provide original run data with -og")
-
     kT = 1/(6*data.params.n)
     t_min = data.metrics['times'][0]
     t_max = data.metrics['times'][-1]
-    t_rhi = formulas.t_rh(data.params.n, metrics_by_time[0.0]['r50pc'],
+    t_rhi = formulas.t_rh(data.params.n, data.by_time()[0.0]['r50pc'],
                           nbody_system.G, 1 | nbody_system.mass)
     times_crc = data.metrics['t_crc']
 
@@ -190,7 +181,7 @@ if __name__ == '__main__':
                                                         'rb'))
         else:
             core_star_ids = find_core_stars(data.snapshots, data.metrics,
-                                            metrics_by_time, t_bin_0)
+                                            data.by_time(), t_bin_0)
 
             work_start_i = time_to_index(t_min, data.metrics)
             work_end_i = time_to_index(t_bin_10, data.metrics)
@@ -223,8 +214,8 @@ if __name__ == '__main__':
 
         for snapshot, time in zip(data.snapshots, data.metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
-            xylims = plotting.get_xylim(metrics_by_time, time, radius_key)
-            rvir = metrics_by_time[time.number]['rvir']
+            xylims = plotting.get_xylim(data.by_time(), time, radius_key)
+            rvir = data.by_time()[time.number]['rvir']
 
             if binaries_found:
                 plotting.scatter(snapshot, time, output_folder, xylims, rvir,

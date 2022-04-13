@@ -1,8 +1,6 @@
 import os
 import argparse
 
-from amuse.units import nbody_system
-
 
 def create_directory(directory_name):
     if not os.path.exists(directory_name):
@@ -33,11 +31,3 @@ def parse_arguments():
         arguments.original_run += "/"
 
     return arguments
-
-
-def metrics_to_time_key(metrics):
-    keys = metrics.keys()
-    metrics_list = [dict(zip(keys, vals))
-                    for vals in zip(*(metrics[k] for k in keys))]
-    return {metrics['times'][i].value_in(nbody_system.time): metrics_list[i]
-            for i in range(len(metrics_list))}
