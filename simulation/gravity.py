@@ -41,6 +41,21 @@ class Gravity:
         self.integrator.commit_particles()
         self.channel = self.integrator.particles.new_channel_to(stars)
 
+    def copy_from_worker(self):
+        self.channel.copy()
+
+    def total_energy(self):
+        return self.integrator.get_total_energy()
+
+    def time(self):
+        return self.integrator.get_time()
+
+    def evolve_model(self, time):
+        self.integrator.evolve_model(time)
+
+    def stop(self):
+        self.integrator.stop()
+
 
 if __name__ == '__main__':
     CONSTS = {'accuracy': 0.01,

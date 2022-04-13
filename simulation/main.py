@@ -1,5 +1,6 @@
 import file_io
 import setting_up
+from gravity import Gravity
 
 import math
 import numpy
@@ -10,6 +11,8 @@ import datetime
 from amuse.units import nbody_system
 from amuse.units import units
 from amuse.ext.LagrangianRadii import LagrangianRadii
+from amuse.community.brutus.interface import Brutus
+from amuse.community.ph4.interface import ph4
 
 from amuse.io import write_set_to_file
 from amuse.rfi.core import is_mpd_running
@@ -164,7 +167,6 @@ def update_metrics(metrics, time, stars, gravity, binaries,
     metrics["total_mass"].append(gravity.total_mass)
     metrics["potential_energy"].append(gravity.potential_energy)
     metrics["kinetic_energy"].append(gravity.kinetic_energy)
-    metrics["total_binary_energy"].append(gravity.get_binary_energy())
 
     metrics['t_crc'].append(calculate_t_crc(core_density))
 
@@ -181,7 +183,8 @@ if __name__ == '__main__':
     metrics = setting_up.initialize_metrics()
     CONSTS = {'accuracy': 0.01,
               'initial_accuracy': 0.0025,
-              'epsilon_squared': 0 | nbody_system.length**2}
+              'epsilon_squared': 0 | nbody_system.length**2,
+              'bs_tolerance': 1e-10}
     params = parse_arguments()
     params.random_seed = set_random_seed(params.random_seed)
 
@@ -197,23 +200,21 @@ if __name__ == '__main__':
     stars, time = setting_up.initialize_stars(params, CONSTS)
     if params.reverse:
         stars = setting_up.reverse_velocities(stars)
-    gravity = setting_up.setup_integrator(stars, CONSTS, time)
-
-    channel = gravity.particles.new_channel_to(stars)
-    stopping_condition = gravity.stopping_conditions.collision_detection
-    stopping_condition.enable()
+        gravity = Gravity(Brutus, CONSTS, time, stars)
+    else:
+        gravity = Gravity(ph4, CONSTS, time, stars)
 
     binaries = []
     binding_energies = []
     integration_time = 0
 
-    E0 = gravity.kinetic_energy + gravity.potential_energy + \
-        gravity.get_binary_energy()
+    E0 = gravity.total_energy()
     max_dE = 0
 
     print("")
 
     while True:
+
         if params.reverse:
             reverse_time = params.start_time - (time - params.start_time)
         else:
@@ -223,24 +224,25 @@ if __name__ == '__main__':
             print(f"Saving metrics and snapshot at t={reverse_time.number}")
             flushed_print((f"This is {time.number} in integrator time, "
                            f"with start time {params.start_time.number}"))
-            metrics = update_metrics(metrics, reverse_time, stars, gravity,
+            metrics = update_metrics(metrics, reverse_time, stars,
+                                     gravity.integrator,
                                      binaries, binding_energies, kT,
                                      integration_time)
             file_io.pickle_object(stars, f"snapshot_{reverse_time}.pkl",
                                   params)
         else:
             flushed_print(f"Saving metrics and snapshot at t={time.number}")
-            metrics = update_metrics(metrics, time, stars, gravity, binaries,
+            metrics = update_metrics(metrics, time, stars, gravity.integrator,
+                                     binaries,
                                      binding_energies, kT, integration_time)
             file_io.pickle_object(stars, f"snapshot_{time}.pkl", params)
 
         file_io.pickle_object(metrics, "cluster_metrics.pkl", params)
 
-        E_tot = gravity.kinetic_energy + gravity.potential_energy + \
-            gravity.get_binary_energy()
+        E_tot = gravity.total_energy()
 
         dE = (E_tot - E0)/E0
-        if dE > max_dE:
+        if abs(dE) > max_dE:
             max_dE = dE
         print(f"dE = {dE}")
 
@@ -259,12 +261,10 @@ if __name__ == '__main__':
             time += params.delta_t
             print(f"delta_t is {params.delta_t} for this iteration")
 
-        while gravity.get_time() < time:
+        while gravity.time() < time:
             gravity.evolve_model(time)
-            if stopping_condition.is_set():
-                print(f"Collision detected at t={gravity.get_time().number}")
-                break
-        channel.copy()
+
+        gravity.copy_from_worker()
 
         print(f"Finished integrating until t={time.number} (integrator time)")
         integration_time = datetime.datetime.now() - integration_start_time

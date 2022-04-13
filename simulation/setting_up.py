@@ -59,21 +59,3 @@ def reverse_velocities(stars):
     stars.vy *= -1
     stars.vz *= -1
     return stars
-
-
-def setup_integrator(stars, CONSTS, time):
-    gravity = grav(number_of_workers=1, redirection="none")
-
-    gravity.initialize_code()
-    gravity.parameters.set_defaults()
-
-    gravity.parameters.timestep_parameter = CONSTS['accuracy']
-    gravity.parameters.initial_timestep_fac = CONSTS['initial_accuracy']
-    gravity.parameters.epsilon_squared = CONSTS['epsilon_squared']
-    gravity.parameters.use_gpu = 0
-    gravity.parameters.begin_time = time
-
-    gravity.particles.add_particles(stars)
-    gravity.commit_particles()
-
-    return gravity
