@@ -5,9 +5,16 @@ import collections
 from amuse.ic.plummer import new_plummer_model
 from amuse.units import nbody_system
 from amuse.units import units
-from amuse.community.ph4.interface import ph4 as grav
 
 import file_io
+
+
+def set_random_seed(random_seed):
+    if random_seed is None:
+        numpy.random.seed()
+        random_seed = numpy.random.randint(1, pow(2, 31)-1)
+    numpy.random.seed(random_seed)
+    return random_seed
 
 
 def initialize_metrics():
