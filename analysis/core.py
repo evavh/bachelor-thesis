@@ -2,6 +2,8 @@ import datetime
 
 import helpers
 import formulas
+import plotting
+import input_output
 
 
 def find_first_binary(data, t_rhi):
@@ -76,3 +78,28 @@ def calculate_work(data, first_binary_ids, work_start_i,
                              reverse=True))
 
     return star_works, total_star_works
+
+
+def produce_scatterplots(data, config, first_binary_ids, t_max):
+    if config.scatter:
+        folder_name = "scatter"
+        radius_key = 'rvir'
+
+    if config.scatter_core:
+        folder_name = "scatter_core"
+        radius_key = 'rcore'
+
+    if config.scatter or config.scatter_core:
+        output_folder = config.output+folder_name
+        input_output.create_directory(output_folder)
+
+        for snapshot, time in zip(data.snapshots, data.metrics['times']):
+            print(f"Plotting t={time} out of {t_max}", end="\r")
+            xylims = plotting.get_xylim(data, time, radius_key)
+            rvir = data.by_time()[time.number]['rvir']
+
+            if first_binary_ids is not None:
+                plotting.scatter(snapshot, time, output_folder, xylims, rvir,
+                                 first_binary_ids)
+            else:
+                plotting.scatter(snapshot, time, output_folder, xylims, rvir)

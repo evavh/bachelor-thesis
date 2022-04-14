@@ -82,28 +82,7 @@ if __name__ == '__main__':
 
         top_stars = dict(itertools.islice(star_works.items(), 10))
 
-    if config.scatter:
-        folder_name = "scatter"
-        radius_key = 'rvir'
-
-    if config.scatter_core:
-        folder_name = "scatter_core"
-        radius_key = 'rcore'
-
-    if config.scatter or config.scatter_core:
-        output_folder = config.output+folder_name
-        input_output.create_directory(output_folder)
-
-        for snapshot, time in zip(data.snapshots, data.metrics['times']):
-            print(f"Plotting t={time} out of {t_max}", end="\r")
-            xylims = plotting.get_xylim(data, time, radius_key)
-            rvir = data.by_time()[time.number]['rvir']
-
-            if first_binary_ids is not None:
-                plotting.scatter(snapshot, time, output_folder, xylims, rvir,
-                                 first_binary_ids)
-            else:
-                plotting.scatter(snapshot, time, output_folder, xylims, rvir)
+    core.produce_scatterplots(data, config, first_binary_ids, t_max)
 
     plotting.radii(data, config)
     plotting.number_of_binaries(data, config, t_rhi)
