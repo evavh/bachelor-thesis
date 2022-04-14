@@ -23,7 +23,9 @@ def stars_to_ids(stars):
     return ids
 
 
-def time_to_index(time, metrics):
+def time_to_index(time, data):
+    metrics = data.metrics
+
     index = None
     for i, t in zip(range(len(metrics['times'])), metrics['times']):
         if t >= time and index is None:
@@ -61,7 +63,9 @@ def stars_in_area(snapshot, density_centre, radius):
     return snapshot.select(within_limits, ['x', 'y', 'z'])
 
 
-def find_first_binary(snapshots, metrics, t_rhi):
+def find_first_binary(data, t_rhi):
+    metrics = data.metrics
+
     binaries_found = False
     first_binary = None
     first_binary_ids = None
@@ -88,11 +92,14 @@ def find_first_binary(snapshots, metrics, t_rhi):
     return None, None
 
 
-def find_core_stars(snapshots, metrics, metrics_by_time, t_bin_0):
+def find_core_stars(data, t_bin_0):
+    snapshots = data.snapshots
+    metrics_by_time = data.by_time()
+
     density_centre = metrics_by_time[t_bin_0.number]['density_centre']
     core_radius = metrics_by_time[t_bin_0.number]['rcore']
 
-    t_bin_0_index = time_to_index(t_bin_0, metrics)
+    t_bin_0_index = time_to_index(t_bin_0, data)
     core_stars = stars_in_area(snapshots[t_bin_0_index], density_centre,
                                core_radius)
     print(f"There are {len(core_stars)} stars in the core at t_bin.")
@@ -101,8 +108,11 @@ def find_core_stars(snapshots, metrics, metrics_by_time, t_bin_0):
     return core_star_ids
 
 
-def calculate_work(snapshots, metrics, first_binary_ids, work_start_i,
+def calculate_work(data, first_binary_ids, work_start_i,
                    work_end_i):
+    snapshots = data.snapshots
+    metrics = data.metrics
+
     star_works = {}
     total_star_works = {}
     print("Starting work function calculation.")
@@ -138,7 +148,7 @@ if __name__ == '__main__':
     kT = 1/(6*data.params.n)
     t_min = data.metrics['times'][0]
     t_max = data.metrics['times'][-1]
-    t_rhi = formulas.t_rh(data.params.n, data.by_time()[0.0]['r50pc'])
+    t_rhi = formulas.t_rh(data)
     times_crc = data.metrics['t_crc']
 
     if data.params.variable_delta:
@@ -148,9 +158,7 @@ if __name__ == '__main__':
 
     print(f"t_max = {t_max.number} = {round(t_max/t_rhi, 1)} t_rhi")
 
-    first_binary_ids, t_bin_10 = find_first_binary(data.snapshots,
-                                                   data.metrics,
-                                                   t_rhi)
+    first_binary_ids, t_bin_10 = find_first_binary(data, t_rhi)
     binaries_found = (first_binary_ids is not None)
 
     if binaries_found:
@@ -179,14 +187,12 @@ if __name__ == '__main__':
                                                         "work_indexes.pkl",
                                                         'rb'))
         else:
-            core_star_ids = find_core_stars(data.snapshots, data.metrics,
-                                            data.by_time(), t_bin_0)
+            core_star_ids = find_core_stars(data, t_bin_0)
 
-            work_start_i = time_to_index(t_min, data.metrics)
-            work_end_i = time_to_index(t_bin_10, data.metrics)
+            work_start_i = time_to_index(t_min, data)
+            work_end_i = time_to_index(t_bin_10, data)
 
-            star_works, total_star_works = calculate_work(data.snapshots,
-                                                          data.metrics,
+            star_works, total_star_works = calculate_work(data,
                                                           first_binary_ids,
                                                           work_start_i,
                                                           work_end_i)
@@ -213,7 +219,7 @@ if __name__ == '__main__':
 
         for snapshot, time in zip(data.snapshots, data.metrics['times']):
             print(f"Plotting t={time} out of {t_max}", end="\r")
-            xylims = plotting.get_xylim(data.by_time(), time, radius_key)
+            xylims = plotting.get_xylim(data, time, radius_key)
             rvir = data.by_time()[time.number]['rvir']
 
             if binaries_found:
@@ -222,9 +228,9 @@ if __name__ == '__main__':
             else:
                 plotting.scatter(snapshot, time, output_folder, xylims, rvir)
 
-    plotting.radii(data.metrics, config)
-    plotting.number_of_binaries(data.metrics, config, t_rhi)
-    plotting.integration_time(data.metrics, config)
-    plotting.N_core(data.snapshots, data.metrics, config)
-    plotting.work_function(top_stars, data.metrics, config, Eb,
+    plotting.radii(data, config)
+    plotting.number_of_binaries(data, config, t_rhi)
+    plotting.integration_time(data, config)
+    plotting.N_core(data, config)
+    plotting.work_function(top_stars, data, config, Eb,
                            work_start_i, work_end_i)

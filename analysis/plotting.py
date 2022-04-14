@@ -6,7 +6,8 @@ import formulas
 import main
 
 
-def get_xylim(metrics_by_time, time, radius_key):
+def get_xylim(data, time, radius_key):
+    metrics_by_time = data.by_time()
     radius = metrics_by_time[time.number][radius_key]
     radius = radius.value_in(nbody_system.length)
 
@@ -73,7 +74,8 @@ def scatter(snapshot, time, output_folder, xylims, rvir,
     pyplot.clf()
 
 
-def radii(metrics, config):
+def radii(data, config):
+    metrics = data.metrics
     pyplot.plot(metrics["times"].value_in(nbody_system.time),
                 metrics["rcore"].value_in(nbody_system.length), c='b')
     pyplot.plot(metrics["times"].value_in(nbody_system.time),
@@ -91,7 +93,8 @@ def radii(metrics, config):
     pyplot.clf()
 
 
-def number_of_binaries(metrics, config, t_rhi):
+def number_of_binaries(data, config, t_rhi):
+    metrics = data.metrics
     number_of_binaries = []
 
     for binaries in metrics['binaries']:
@@ -108,7 +111,8 @@ def number_of_binaries(metrics, config, t_rhi):
     pyplot.clf()
 
 
-def integration_time(metrics, config):
+def integration_time(data, config):
+    metrics = data.metrics
     times = metrics['times'].value_in(nbody_system.time)
 
     pyplot.plot(times[1:], metrics['integration_time'][1:])
@@ -119,7 +123,10 @@ def integration_time(metrics, config):
     pyplot.clf()
 
 
-def N_core(snapshots, metrics, config):
+def N_core(data, config):
+    snapshots = data.snapshots
+    metrics = data.metrics
+
     density_centres = metrics['density_centre']
     core_radii = metrics['rcore']
     times = metrics['times']
@@ -140,7 +147,8 @@ def N_core(snapshots, metrics, config):
     pyplot.clf()
 
 
-def work_function(work_for_star, metrics, config, Eb, start, stop):
+def work_function(work_for_star, data, config, Eb, start, stop):
+    metrics = data.metrics
     times = metrics['times'][start:stop]
 
     for star in work_for_star:

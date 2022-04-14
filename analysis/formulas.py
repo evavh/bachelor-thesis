@@ -6,7 +6,9 @@ from amuse.units import nbody_system
 import main
 
 
-def t_rh(N, r_h):
+def t_rh(data):
+    N = data.params.n
+    r_h = data.by_time()[0.0]['r50pc']
     G = nbody_system.G
     M = 1 | nbody_system.mass
     return 0.138*N*r_h**(3/2)/(G**(1/2)*M**(1/2)*math.log(0.4*N))
