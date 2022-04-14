@@ -5,62 +5,11 @@ import itertools
 import datetime
 import pickle
 
+import helpers
 import input_output
 import formulas
 import plotting
 from data import Data
-
-
-def ids_to_stars(snapshot, ids):
-    def criterium(id): return id in ids
-    return snapshot.select(criterium, ['id'])
-
-
-def stars_to_ids(stars):
-    ids = []
-    for star in stars:
-        ids.append(star.id)
-    return ids
-
-
-def time_to_index(time, data):
-    metrics = data.metrics
-
-    index = None
-    for i, t in zip(range(len(metrics['times'])), metrics['times']):
-        if t >= time and index is None:
-            index = i
-
-    return index
-
-
-def limits_from_radius(radius, density_centre):
-    x_min = density_centre[0] - radius
-    x_max = density_centre[0] + radius
-
-    y_min = density_centre[1] - radius
-    y_max = density_centre[1] + radius
-
-    z_min = density_centre[2] - radius
-    z_max = density_centre[2] + radius
-
-    return ((x_min, x_max), (y_min, y_max), (z_min, z_max))
-
-
-def stars_in_area(snapshot, density_centre, radius):
-    limits = limits_from_radius(radius, density_centre)
-
-    def within_limits(x, y, z):
-        x_lims, y_lims, z_lims = limits
-        x_min, x_max = x_lims
-        y_min, y_max = y_lims
-        z_min, z_max = z_lims
-
-        return (x > x_min and x < x_max and
-                y > y_min and y < y_max and
-                z > z_min and z < z_max)
-
-    return snapshot.select(within_limits, ['x', 'y', 'z'])
 
 
 def find_first_binary(data, t_rhi):
@@ -99,12 +48,13 @@ def find_core_stars(data, t_bin_0):
     density_centre = metrics_by_time[t_bin_0.number]['density_centre']
     core_radius = metrics_by_time[t_bin_0.number]['rcore']
 
-    t_bin_0_index = time_to_index(t_bin_0, data)
-    core_stars = stars_in_area(snapshots[t_bin_0_index], density_centre,
-                               core_radius)
+    t_bin_0_index = helpers.time_to_index(t_bin_0, data)
+    core_stars = helpers.stars_in_area(snapshots[t_bin_0_index],
+                                       density_centre,
+                                       core_radius)
     print(f"There are {len(core_stars)} stars in the core at t_bin.")
 
-    core_star_ids = stars_to_ids(core_stars)
+    core_star_ids = helpers.stars_to_ids(core_stars)
     return core_star_ids
 
 
@@ -165,7 +115,7 @@ if __name__ == '__main__':
         t_bin_0 = None
         Eb = []
         for snapshot, time in zip(data.snapshots, data.metrics['times']):
-            first_binary = ids_to_stars(snapshot, first_binary_ids)
+            first_binary = helpers.ids_to_stars(snapshot, first_binary_ids)
             if formulas.binding_energy(*first_binary) \
                     > 0 | nbody_system.energy:
                 if t_bin_0 is None:
@@ -189,8 +139,8 @@ if __name__ == '__main__':
         else:
             core_star_ids = find_core_stars(data, t_bin_0)
 
-            work_start_i = time_to_index(t_min, data)
-            work_end_i = time_to_index(t_bin_10, data)
+            work_start_i = helpers.time_to_index(t_min, data)
+            work_end_i = helpers.time_to_index(t_bin_10, data)
 
             star_works, total_star_works = calculate_work(data,
                                                           first_binary_ids,
