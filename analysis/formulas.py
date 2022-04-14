@@ -2,7 +2,8 @@ import math
 import numpy
 
 from amuse.units import nbody_system
-from amuse.datamodel import Particles
+
+import main
 
 
 def t_rh(N, r_h):
@@ -34,7 +35,9 @@ def f_ik_j(component_k, star_j):
                         component_k.z.number]) | star_j.x.unit
 
     force_vector = -G*m_j*m_ik*(r_ik-r_j)/(norm(r_ik-r_j)**3)
-    assert (force_vector.unit == nbody_system.mass * nbody_system.acceleration)
+    assert force_vector.unit == nbody_system.mass * nbody_system.acceleration,\
+        (f"force vector has unit {force_vector.unit}, expected "
+         f"{nbody_system.mass * nbody_system.acceleration}")
 
     return force_vector
 
@@ -55,12 +58,8 @@ def work_function(snapshots, metrics, tuple_ids, star_id,
                   start_index, end_index):
     power_functions = []
     for snapshot in snapshots[start_index:end_index]:
-        tuple = Particles(0)
-        for particle in snapshot:
-            if particle.id in tuple_ids:
-                tuple.add_particle(particle)
-            if particle.id == star_id:
-                star = particle
+        tuple = main.ids_to_stars(snapshot, tuple_ids)
+        star = main.ids_to_stars(snapshot, [star_id])[0]
 
         power = power_function(tuple, star) * (1.0 | nbody_system.time)
         power_functions.append(power.value_in(nbody_system.energy))
