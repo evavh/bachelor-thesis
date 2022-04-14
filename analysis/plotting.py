@@ -73,7 +73,7 @@ def scatter(snapshot, time, output_folder, xylims, rvir,
     pyplot.clf()
 
 
-def radii(metrics, arguments):
+def radii(metrics, config):
     pyplot.plot(metrics["times"].value_in(nbody_system.time),
                 metrics["rcore"].value_in(nbody_system.length), c='b')
     pyplot.plot(metrics["times"].value_in(nbody_system.time),
@@ -87,11 +87,11 @@ def radii(metrics, arguments):
     pyplot.xlabel("time")
     pyplot.ylabel("radius")
     pyplot.semilogy()
-    pyplot.savefig(arguments.output+"radii.svg", format='svg')
+    pyplot.savefig(config.output+"radii.svg", format='svg')
     pyplot.clf()
 
 
-def number_of_binaries(metrics, arguments, t_rhi):
+def number_of_binaries(metrics, config, t_rhi):
     number_of_binaries = []
 
     for binaries in metrics['binaries']:
@@ -104,22 +104,22 @@ def number_of_binaries(metrics, arguments, t_rhi):
     pyplot.ylabel("$n_b$")
 
     pyplot.gca().set_aspect('equal')
-    pyplot.savefig(arguments.output+"number_of_binaries.svg", format='svg')
+    pyplot.savefig(config.output+"number_of_binaries.svg", format='svg')
     pyplot.clf()
 
 
-def integration_time(metrics, arguments):
+def integration_time(metrics, config):
     times = metrics['times'].value_in(nbody_system.time)
 
     pyplot.plot(times[1:], metrics['integration_time'][1:])
     pyplot.xlabel("t")
     pyplot.ylabel("Integration time [s]")
 
-    pyplot.savefig(arguments.output+"integration_time.svg", format='svg')
+    pyplot.savefig(config.output+"integration_time.svg", format='svg')
     pyplot.clf()
 
 
-def N_core(snapshots, metrics, arguments):
+def N_core(snapshots, metrics, config):
     density_centres = metrics['density_centre']
     core_radii = metrics['rcore']
     times = metrics['times']
@@ -136,11 +136,11 @@ def N_core(snapshots, metrics, arguments):
     pyplot.xlabel("t")
     pyplot.ylabel("Number of stars in the core")
 
-    pyplot.savefig(arguments.output+"N_core.svg", format='svg')
+    pyplot.savefig(config.output+"N_core.svg", format='svg')
     pyplot.clf()
 
 
-def work_function(work_for_star, metrics, arguments, Eb, start, stop):
+def work_function(work_for_star, metrics, config, Eb, start, stop):
     times = metrics['times'][start:stop]
 
     for star in work_for_star:
@@ -157,5 +157,5 @@ def work_function(work_for_star, metrics, arguments, Eb, start, stop):
     pyplot.ylabel("Work on / Eb of binary [kT]")
     pyplot.legend()
 
-    pyplot.savefig(arguments.output+"work_function.svg", format='svg')
+    pyplot.savefig(config.output+"work_function.svg", format='svg')
     pyplot.clf()

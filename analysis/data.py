@@ -22,22 +22,22 @@ def change_to_time_key(metrics):
 class Data:
     metrics_by_time = None
 
-    def __init__(self, arguments):
-        self.snapshots = load_snapshots(arguments.input)
+    def __init__(self, config):
+        self.snapshots = load_snapshots(config.input)
         print(f"Loaded snapshots of {len(self.snapshots)} timesteps.")
 
-        self.consts = pickle.load(open(arguments.input+"constants.pkl", "rb"))
+        self.consts = pickle.load(open(config.input+"constants.pkl", "rb"))
         print("Loaded constants:", list(self.consts.keys()))
 
-        self.params = pickle.load(open(arguments.input+"parameters.pkl", "rb"))
+        self.params = pickle.load(open(config.input+"parameters.pkl", "rb"))
         print("Loaded parameters:", list(vars(self.params).keys()))
 
         self.metrics = pickle.load(
-            open(arguments.input+"cluster_metrics.pkl", "rb"))
+            open(config.input+"cluster_metrics.pkl", "rb"))
         print("Loaded metrics:", list(self.metrics.keys()))
 
-        if arguments.original_run is not None:
-            self.og_metrics = pickle.load(open(arguments.original_run +
+        if config.original_run is not None:
+            self.og_metrics = pickle.load(open(config.original_run +
                                           "cluster_metrics.pkl", "rb"))
             print("Loaded original run metrics:", list(self.og_metrics.keys()))
         else:

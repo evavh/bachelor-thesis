@@ -127,12 +127,12 @@ def calculate_work(snapshots, metrics, first_binary_ids, work_start_i,
 
 
 if __name__ == '__main__':
-    arguments = input_output.parse_arguments()
+    config = input_output.parse_arguments()
 
-    input_output.create_directory(arguments.output)
-    input_output.create_directory(arguments.input)
+    input_output.create_directory(config.output)
+    input_output.create_directory(config.input)
 
-    data = Data(arguments)
+    data = Data(config)
     print('')
 
     kT = 1/(6*data.params.n)
@@ -170,12 +170,12 @@ if __name__ == '__main__':
 
         Eb = numpy.array(Eb)/kT
 
-        if arguments.load_work:
-            star_works = pickle.load(open(arguments.output+"star_works.pkl",
+        if config.load_work:
+            star_works = pickle.load(open(config.output+"star_works.pkl",
                                           'rb'))
-            total_star_works = pickle.load(open(arguments.output +
+            total_star_works = pickle.load(open(config.output +
                                                 "total_star_works.pkl", 'rb'))
-            work_start_i, work_end_i = pickle.load(open(arguments.output +
+            work_start_i, work_end_i = pickle.load(open(config.output +
                                                         "work_indexes.pkl",
                                                         'rb'))
         else:
@@ -190,25 +190,25 @@ if __name__ == '__main__':
                                                           first_binary_ids,
                                                           work_start_i,
                                                           work_end_i)
-            pickle.dump(star_works, open(arguments.output+"star_works.pkl",
+            pickle.dump(star_works, open(config.output+"star_works.pkl",
                                          "wb"))
             pickle.dump(total_star_works,
-                        open(arguments.output+"total_star_works.pkl", "wb"))
+                        open(config.output+"total_star_works.pkl", "wb"))
             pickle.dump((work_start_i, work_end_i),
-                        open(arguments.output+"work_indexes.pkl", 'wb'))
+                        open(config.output+"work_indexes.pkl", 'wb'))
 
         top_stars = dict(itertools.islice(star_works.items(), 10))
 
-    if arguments.scatter:
+    if config.scatter:
         folder_name = "scatter"
         radius_key = 'rvir'
 
-    if arguments.scatter_core:
+    if config.scatter_core:
         folder_name = "scatter_core"
         radius_key = 'rcore'
 
-    if arguments.scatter or arguments.scatter_core:
-        output_folder = arguments.output+folder_name
+    if config.scatter or config.scatter_core:
+        output_folder = config.output+folder_name
         input_output.create_directory(output_folder)
 
         for snapshot, time in zip(data.snapshots, data.metrics['times']):
@@ -222,9 +222,9 @@ if __name__ == '__main__':
             else:
                 plotting.scatter(snapshot, time, output_folder, xylims, rvir)
 
-    plotting.radii(data.metrics, arguments)
-    plotting.number_of_binaries(data.metrics, arguments, t_rhi)
-    plotting.integration_time(data.metrics, arguments)
-    plotting.N_core(data.snapshots, data.metrics, arguments)
-    plotting.work_function(top_stars, data.metrics, arguments, Eb,
+    plotting.radii(data.metrics, config)
+    plotting.number_of_binaries(data.metrics, config, t_rhi)
+    plotting.integration_time(data.metrics, config)
+    plotting.N_core(data.snapshots, data.metrics, config)
+    plotting.work_function(top_stars, data.metrics, config, Eb,
                            work_start_i, work_end_i)
