@@ -2,88 +2,14 @@ from amuse.units import nbody_system
 
 import numpy
 import itertools
-import datetime
 import pickle
 
 import helpers
+import core
 import input_output
 import formulas
 import plotting
 from data import Data
-
-
-def find_first_binary(data, t_rhi):
-    metrics = data.metrics
-
-    binaries_found = False
-    first_binary = None
-    first_binary_ids = None
-    t_bin = None
-
-    for time, binaries in zip(metrics['times'], metrics['binaries']):
-        if binaries != [] and not binaries_found:
-            binaries_found = True
-            first_binary = binaries[0]
-            first_binary_ids = (first_binary[0].id.number,
-                                first_binary[1].id.number)
-            t_bin = time
-
-            print(f"The first binary is {first_binary_ids}")
-            print((f"It has reached 10kT by t = {t_bin.number} = "
-                   f"{round(t_bin/t_rhi, 1)} t_rhi."))
-            if len(binaries) > 1:
-                print((f"NOTE: {len(binaries)-1} more were found at this"
-                       " time!"))
-
-            return first_binary_ids, t_bin
-
-    print("No binaries found.")
-    return None, None
-
-
-def find_core_stars(data, t_bin_0):
-    snapshots = data.snapshots
-    metrics_by_time = data.by_time()
-
-    density_centre = metrics_by_time[t_bin_0.number]['density_centre']
-    core_radius = metrics_by_time[t_bin_0.number]['rcore']
-
-    t_bin_0_index = helpers.time_to_index(t_bin_0, data)
-    core_stars = helpers.stars_in_area(snapshots[t_bin_0_index],
-                                       density_centre,
-                                       core_radius)
-    print(f"There are {len(core_stars)} stars in the core at t_bin.")
-
-    core_star_ids = helpers.stars_to_ids(core_stars)
-    return core_star_ids
-
-
-def calculate_work(data, first_binary_ids, work_start_i,
-                   work_end_i):
-    snapshots = data.snapshots
-    metrics = data.metrics
-
-    star_works = {}
-    total_star_works = {}
-    print("Starting work function calculation.")
-    start_of_calc = datetime.datetime.now()
-
-    for star_id in core_star_ids:
-        key = star_id.number
-        star_works[key], total_star_works[key] = \
-            formulas.work_function(snapshots, metrics, first_binary_ids,
-                                   star_id, work_start_i, work_end_i)
-        star_works[key] /= kT
-        total_star_works[key] /= kT
-    calc_time_s = datetime.datetime.now() - start_of_calc
-    calc_time_s = calc_time_s.total_seconds()
-    print(f"Work function calculation finished after {calc_time_s} s.")
-
-    star_works = dict(sorted(star_works.items(),
-                             key=lambda x: abs(total_star_works[x[0]]),
-                             reverse=True))
-
-    return star_works, total_star_works
 
 
 if __name__ == '__main__':
@@ -108,7 +34,7 @@ if __name__ == '__main__':
 
     print(f"t_max = {t_max.number} = {round(t_max/t_rhi, 1)} t_rhi")
 
-    first_binary_ids, t_bin_10 = find_first_binary(data, t_rhi)
+    first_binary_ids, t_bin_10 = core.find_first_binary(data, t_rhi)
     binaries_found = (first_binary_ids is not None)
 
     if binaries_found:
@@ -137,15 +63,17 @@ if __name__ == '__main__':
                                                         "work_indexes.pkl",
                                                         'rb'))
         else:
-            core_star_ids = find_core_stars(data, t_bin_0)
+            core_star_ids = core.find_core_stars(data, t_bin_0)
 
             work_start_i = helpers.time_to_index(t_min, data)
             work_end_i = helpers.time_to_index(t_bin_10, data)
 
-            star_works, total_star_works = calculate_work(data,
-                                                          first_binary_ids,
-                                                          work_start_i,
-                                                          work_end_i)
+            star_works, total_star_works = core.calculate_work(data,
+                                                               first_binary_ids,
+                                                               work_start_i,
+                                                               work_end_i,
+                                                               core_star_ids,
+                                                               kT)
             pickle.dump(star_works, open(config.output+"star_works.pkl",
                                          "wb"))
             pickle.dump(total_star_works,

@@ -3,7 +3,7 @@ import numpy
 
 from amuse.units import nbody_system
 
-import main
+import helpers
 
 
 def t_rh(data):
@@ -60,8 +60,8 @@ def work_function(snapshots, metrics, tuple_ids, star_id,
                   start_index, end_index):
     power_functions = []
     for snapshot in snapshots[start_index:end_index]:
-        tuple = main.ids_to_stars(snapshot, tuple_ids)
-        star = main.ids_to_stars(snapshot, [star_id])[0]
+        tuple = helpers.ids_to_stars(snapshot, tuple_ids)
+        star = helpers.ids_to_stars(snapshot, [star_id])[0]
 
         power = power_function(tuple, star) * (1.0 | nbody_system.time)
         power_functions.append(power.value_in(nbody_system.energy))

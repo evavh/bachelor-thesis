@@ -3,7 +3,7 @@ from matplotlib import pyplot
 import numpy
 
 import formulas
-import main
+import helpers
 
 
 def get_xylim(data, time, radius_key):
@@ -32,7 +32,7 @@ def scatter(snapshot, time, output_folder, xylims, rvir,
 
     first_binary = None
     if first_binary_ids is not None:
-        first_binary = main.ids_to_stars(snapshot, first_binary_ids)
+        first_binary = helpers.ids_to_stars(snapshot, first_binary_ids)
 
     x_of_stars = snapshot.x/rvir
     y_of_stars = snapshot.y/rvir
@@ -136,7 +136,8 @@ def N_core(data, config):
     for snapshot, density_centre, core_radius in zip(snapshots,
                                                      density_centres,
                                                      core_radii):
-        core_stars = main.stars_in_area(snapshot, density_centre, core_radius)
+        core_stars = helpers.stars_in_area(snapshot, density_centre,
+                                           core_radius)
         N_core.append(len(core_stars))
 
     pyplot.plot(times.number, N_core)
