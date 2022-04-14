@@ -35,9 +35,8 @@ if __name__ == '__main__':
     print(f"t_max = {t_max.number} = {round(t_max/t_rhi, 1)} t_rhi")
 
     first_binary_ids, t_bin_10 = core.find_first_binary(data, t_rhi)
-    binaries_found = (first_binary_ids is not None)
 
-    if binaries_found:
+    if first_binary_ids is not None:
         t_bin_0 = None
         Eb = []
         for snapshot, time in zip(data.snapshots, data.metrics['times']):
@@ -100,7 +99,7 @@ if __name__ == '__main__':
             xylims = plotting.get_xylim(data, time, radius_key)
             rvir = data.by_time()[time.number]['rvir']
 
-            if binaries_found:
+            if first_binary_ids is not None:
                 plotting.scatter(snapshot, time, output_folder, xylims, rvir,
                                  first_binary_ids)
             else:
