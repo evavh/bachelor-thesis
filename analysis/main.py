@@ -69,11 +69,12 @@ if __name__ == '__main__':
         work_start_i, work_end_i = pickle.load(open(config.output +
                                                     "work_indexes.pkl",
                                                     'rb'))
-    else:
+    elif config.calc_work:
         core_star_ids = core.find_core_stars(data, t_bin_0)
 
-        work_start_i = helpers.time_to_index(t_min, data)
-        work_end_i = helpers.time_to_index(t_bin_10, data)
+        work_start_i = helpers.time_to_index(t_bin_0 - 1,
+                                             data)
+        work_end_i = helpers.time_to_index(t_bin_0, data)
 
         star_works, total_star_works = core.calculate_work(data,
                                                            first_binary_ids,
@@ -89,6 +90,8 @@ if __name__ == '__main__':
                     open(config.output+"work_indexes.pkl", 'wb'))
 
         top_stars = dict(itertools.islice(star_works.items(), 10))
+    else:
+        quit()
 
     plotting.work_function(top_stars, data, config, Eb,
                            work_start_i, work_end_i)
