@@ -15,7 +15,7 @@ def time_to_index(time, data):
 
     index = None
     for i, t in zip(range(len(metrics['times'])), metrics['times']):
-        if t >= time and index is None:
+        if t.number >= time and index is None:
             index = i
 
     return index

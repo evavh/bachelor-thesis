@@ -32,7 +32,7 @@ if __name__ == '__main__':
     else:
         taus = numpy.cumsum(data.params.delta_t/times_crc)
 
-    print(f"t_max = {t_max.number} = {round(t_max/t_rhi, 1)} t_rhi")
+    print(f"t_max = {t_max.number} = {round(t_max/t_rhi, 2)} t_rhi")
 
     first_binary_ids, t_bin_10 = core.find_first_binary(data, t_rhi)
 
@@ -47,14 +47,16 @@ if __name__ == '__main__':
 
     t_bin_0 = None
     Eb = []
-    for snapshot, time in zip(data.snapshots, data.metrics['times']):
+    rev_times = numpy.flip(data.metrics['times'].number)
+    data.snapshots.reverse()
+    for snapshot, time in zip(data.snapshots, rev_times):
         first_binary = helpers.ids_to_stars(snapshot, first_binary_ids)
         if formulas.binding_energy(*first_binary) \
-                > 0 | nbody_system.energy:
+                <= 0 | nbody_system.energy and time < t_bin_10.number:
             if t_bin_0 is None:
                 t_bin_0 = time
-                print((f"It has formed by t = {t_bin_0.number} = "
-                       f"{round(t_bin_0/t_rhi, 1)} t_rhi."))
+                print((f"It forms after t = {t_bin_0} = "
+                       f"{round(t_bin_0/t_rhi.number, 2)} t_rhi."))
 
         Eb.append(formulas.binding_energy(*first_binary)
                   .value_in(nbody_system.energy))

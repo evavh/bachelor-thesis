@@ -24,7 +24,7 @@ def find_first_binary(data, t_rhi):
 
             print(f"The first binary is {first_binary_ids}")
             print((f"It has reached 10kT by t = {t_bin.number} = "
-                   f"{round(t_bin/t_rhi, 1)} t_rhi."))
+                   f"{round(t_bin/t_rhi, 2)} t_rhi."))
             if len(binaries) > 1:
                 print((f"NOTE: {len(binaries)-1} more were found at this"
                        " time!"))
@@ -39,8 +39,8 @@ def find_core_stars(data, t_bin_0):
     snapshots = data.snapshots
     metrics_by_time = data.by_time()
 
-    density_centre = metrics_by_time[t_bin_0.number]['density_centre']
-    core_radius = metrics_by_time[t_bin_0.number]['rcore']
+    density_centre = metrics_by_time[t_bin_0]['density_centre']
+    core_radius = metrics_by_time[t_bin_0]['rcore']
 
     t_bin_0_index = helpers.time_to_index(t_bin_0, data)
     core_stars = helpers.stars_in_area(snapshots[t_bin_0_index],
