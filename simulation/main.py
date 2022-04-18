@@ -1,4 +1,4 @@
-import file_io
+import input_output
 import setting_up
 from gravity import Gravity
 import core
@@ -27,15 +27,14 @@ if __name__ == '__main__':
     metrics = setting_up.initialize_metrics()
     CONSTS = {'accuracy': 0.01,
               'initial_accuracy': 0.0025,
-              'epsilon_squared': 0 | nbody_system.length**2,
-              'bs_tolerance': 1e-10}
-    params = file_io.parse_arguments()
+              'epsilon_squared': 0 | nbody_system.length**2}
+    params = input_output.parse_arguments()
     params.random_seed = setting_up.set_random_seed(params.random_seed)
 
-    file_io.create_directory(params.output_folder)
+    input_output.create_directory(params.output_folder)
 
-    file_io.pickle_object(params, "parameters.pkl", params)
-    file_io.pickle_object(CONSTS, "constants.pkl", params)
+    input_output.pickle_object(params, "parameters.pkl", params)
+    input_output.pickle_object(CONSTS, "constants.pkl", params)
 
     kT = 1/(6*params.n)
     minimum_Eb = params.minimum_Eb_kT * kT
@@ -44,9 +43,9 @@ if __name__ == '__main__':
     stars, time = setting_up.initialize_stars(params, CONSTS)
     if params.reverse:
         stars = setting_up.reverse_velocities(stars)
-        gravity = Gravity(Brutus, CONSTS, time, stars)
+        gravity = Gravity(Brutus, CONSTS, time, stars, params)
     else:
-        gravity = Gravity(ph4, CONSTS, time, stars)
+        gravity = Gravity(ph4, CONSTS, time, stars, params)
 
     binaries = []
     binding_energies = []
@@ -61,10 +60,7 @@ if __name__ == '__main__':
 
         if params.reverse:
             reverse_time = params.start_time - (time - params.start_time)
-        else:
-            reverse_time = None
 
-        if params.reverse:
             print(f"Saving metrics and snapshot at t={reverse_time.number}")
             flushed_print((f"This is {time.number} in integrator time, "
                            f"with start time {params.start_time.number}"))
@@ -72,18 +68,20 @@ if __name__ == '__main__':
                                           gravity.integrator,
                                           binaries, binding_energies, kT,
                                           integration_time)
-            file_io.pickle_object(stars, f"snapshot_{reverse_time}.pkl",
-                                  params)
+            input_output.pickle_object(stars, f"snapshot_{reverse_time}.pkl",
+                                       params)
         else:
+            reverse_time = None
+
             flushed_print(f"Saving metrics and snapshot at t={time.number}")
             metrics = core.update_metrics(metrics, time, stars,
                                           gravity.integrator,
                                           binaries,
                                           binding_energies, kT,
                                           integration_time)
-            file_io.pickle_object(stars, f"snapshot_{time}.pkl", params)
+            input_output.pickle_object(stars, f"snapshot_{time}.pkl", params)
 
-        file_io.pickle_object(metrics, "cluster_metrics.pkl", params)
+        input_output.pickle_object(metrics, "cluster_metrics.pkl", params)
 
         E_tot = gravity.total_energy()
 
@@ -128,4 +126,4 @@ if __name__ == '__main__':
     print(f"\nMaximum dE = {max_dE}")
 
     write_set_to_file(stars, params.output_folder+"final_state.csv", "csv")
-    file_io.round_csv(params.output_folder+"final_state.csv", 3)
+    input_output.round_csv(params.output_folder+"final_state.csv", 3)

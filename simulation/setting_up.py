@@ -6,7 +6,7 @@ from amuse.ic.plummer import new_plummer_model
 from amuse.units import nbody_system
 from amuse.units import units
 
-import file_io
+import input_output
 
 
 def set_random_seed(random_seed):
@@ -46,7 +46,7 @@ def find_snapshot(params):
     start_time = params.start_time
     for filename in os.listdir(params.snapshot_input):
         if filename.endswith('.pkl') and str(start_time) in filename:
-            stars = file_io.unpickle_object(filename, params)
+            stars = input_output.unpickle_object(filename, params)
             return stars, start_time
     raise Exception("Start time not found in snapshot folder.")
 

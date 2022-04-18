@@ -16,6 +16,8 @@ def parse_arguments():
                         default=100, type=int)
     parser.add_argument("-s", "--random_seed", help="random number seed",
                         default=None, type=int)
+    parser.add_argument("-e", "--bs_tolerance", help="tolerance for Brutus",
+                        default=None, type=float)
     parser.add_argument("-t", "--t_end", help="time to force end the sim",
                         default=None, type=float)
     parser.add_argument("-T", "--start_time", help="snapshot time to load",
@@ -33,6 +35,7 @@ def parse_arguments():
 
     if params.reverse:
         print("Running a reversed simulation.")
+        assert params.bs_tolerance is not None, "Please specify bs tolerance"
         assert params.t_end is not None, \
             "When reversed there must be an end time."
         assert params.start_time is not None, \

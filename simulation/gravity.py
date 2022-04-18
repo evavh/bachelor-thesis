@@ -8,7 +8,7 @@ import setting_up
 
 
 class Gravity:
-    def __init__(self, integrator, CONSTS, time, stars):
+    def __init__(self, integrator, CONSTS, time, stars, params):
         if integrator not in [Brutus, ph4]:
             print(f"Invalid or unimplemented integrator: {integrator}")
 
@@ -21,9 +21,10 @@ class Gravity:
         if integrator == Brutus:
             print("Using Brutus")
 
-            self.integrator.parameters.bs_tolerance = CONSTS['bs_tolerance']
-            word_length = 4*abs(math.log(CONSTS['bs_tolerance'], 10)) + 32
+            self.integrator.parameters.bs_tolerance = params.bs_tolerance
+            word_length = 4*abs(math.log(params.bs_tolerance, 10)) + 32
             self.integrator.parameters.word_length = word_length
+            self.integrator.parameters.dt_param = 0.00068
 
         elif integrator == ph4:
             print("Using ph4")
