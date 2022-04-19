@@ -56,8 +56,10 @@ def power_function(tuple, star):
     return dEdt
 
 
-def work_function(snapshots, metrics, tuple_ids, star_id,
+def work_function(data, tuple_ids, star_id,
                   start_index, end_index):
+    snapshots = data.snapshots
+
     power_functions = []
     for snapshot in snapshots[start_index:end_index]:
         tuple = helpers.ids_to_stars(snapshot, tuple_ids)
@@ -66,7 +68,8 @@ def work_function(snapshots, metrics, tuple_ids, star_id,
         power = power_function(tuple, star) * (1.0 | nbody_system.time)
         power_functions.append(power.value_in(nbody_system.energy))
 
-    work = numpy.cumsum(power_functions)
+    power_functions = numpy.array(power_functions)
+    work = numpy.cumsum(power_functions*data.delta_ts()[start_index:end_index])
     total_work = numpy.sum(work)
 
     return work, total_work

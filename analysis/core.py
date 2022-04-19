@@ -54,9 +54,6 @@ def find_core_stars(data, t_bin_0):
 
 def calculate_work(data, first_binary_ids, work_start_i,
                    work_end_i, core_star_ids, kT):
-    snapshots = data.snapshots
-    metrics = data.metrics
-
     star_works = {}
     total_star_works = {}
     print("Starting work function calculation.")
@@ -65,7 +62,7 @@ def calculate_work(data, first_binary_ids, work_start_i,
     for star_id in core_star_ids:
         key = star_id.number
         star_works[key], total_star_works[key] = \
-            formulas.work_function(snapshots, metrics, first_binary_ids,
+            formulas.work_function(data, first_binary_ids,
                                    star_id, work_start_i, work_end_i)
         star_works[key] /= kT
         total_star_works[key] /= kT

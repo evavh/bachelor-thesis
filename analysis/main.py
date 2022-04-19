@@ -21,6 +21,9 @@ if __name__ == '__main__':
     data = Data(config)
     print('')
 
+    if not data.params.variable_delta and config.calc_work:
+        print("Work calc uses variable delta, invalid otherwise!")
+
     kT = 1/(6*data.params.n)
     t_min = data.metrics['times'][0]
     t_max = data.metrics['times'][-1]
@@ -77,6 +80,7 @@ if __name__ == '__main__':
         work_start_i = helpers.time_to_index(t_bin_0 - 1,
                                              data)
         work_end_i = helpers.time_to_index(t_bin_0, data)
+        print(f"Calculating work from {t_bin_0-1} to {t_bin_0}.")
 
         star_works, total_star_works = core.calculate_work(data,
                                                            first_binary_ids,

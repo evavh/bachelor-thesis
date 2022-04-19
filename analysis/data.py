@@ -1,5 +1,6 @@
 import pickle
 import os
+import numpy
 
 
 def load_snapshots(snapshot_dir):
@@ -21,6 +22,7 @@ def change_to_time_key(metrics):
 
 class Data:
     metrics_by_time = None
+    dts = None
 
     def __init__(self, config):
         self.snapshots = load_snapshots(config.input)
@@ -45,7 +47,8 @@ class Data:
 
         for key in self.metrics:
             assert (len(self.metrics[key]) == len(self.snapshots)),\
-                f"len({key})={len(key)}, there are {len(self.snapshots)} snaps"
+                (f"len({key})={len(self.metrics[key])},"
+                 f"there are {len(self.snapshots)} snaps")
 
     def by_time(self):
         if self.metrics_by_time is None:
@@ -59,3 +62,13 @@ class Data:
             return self.metrics_by_time
         else:
             return self.metrics_by_time
+
+    def delta_ts(self):
+        if self.dts is None:
+            delta_ts = []
+            for t_crc in self.metrics['t_crc']:
+                delta_ts.append(0.01*t_crc.number)
+            self.dts = numpy.array(delta_ts)
+            return self.dts
+        else:
+            return self.dts
