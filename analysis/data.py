@@ -1,5 +1,4 @@
 import pickle
-import os
 import numpy
 import sys
 
@@ -9,14 +8,18 @@ def flushed_print(string):
     sys.stdout.flush()
 
 
-def load_snapshots(snapshot_dir):
+def load_snapshots(snapshot_dir, metrics):
     snapshots = []
-    for filename in os.listdir(snapshot_dir):
+
+    for time in metrics['times']:
+        filename = f"{snapshot_dir}snapshot_{time}.pkl"
         flushed_print(f"Trying to load {filename}")
-        if filename.endswith('.pkl') and "snapshot" in filename:
-            with open(snapshot_dir+filename, 'rb') as inputfile:
-                snapshots.append(pickle.load(inputfile))
+
+        with open(filename, 'rb') as inputfile:
+            snapshots.append(pickle.load(inputfile))
+
         flushed_print("Succesfully loaded it.")
+
     return snapshots
 
 
@@ -33,15 +36,6 @@ class Data:
     dts = None
 
     def __init__(self, config):
-        self.snapshots = load_snapshots(config.input)
-        print(f"Loaded snapshots of {len(self.snapshots)} timesteps.")
-
-        self.consts = pickle.load(open(config.input+"constants.pkl", "rb"))
-        print("Loaded constants:", list(self.consts.keys()))
-
-        self.params = pickle.load(open(config.input+"parameters.pkl", "rb"))
-        print("Loaded parameters:", list(vars(self.params).keys()))
-
         self.metrics = pickle.load(
             open(config.input+"cluster_metrics.pkl", "rb"))
         print("Loaded metrics:", list(self.metrics.keys()))
@@ -50,9 +44,17 @@ class Data:
                             "s65561_detailed_continue/"):
             for key in self.metrics:
                 self.metrics[key] = self.metrics[key][9515:-3838]
-
             print(f"Metrics start at t={self.metrics['times'][0]}"
                   f" and end at t={self.metrics['times'][-1]}")
+
+        self.snapshots = load_snapshots(config.input, self.metrics)
+        print(f"Loaded snapshots of {len(self.snapshots)} timesteps.")
+
+        self.consts = pickle.load(open(config.input+"constants.pkl", "rb"))
+        print("Loaded constants:", list(self.consts.keys()))
+
+        self.params = pickle.load(open(config.input+"parameters.pkl", "rb"))
+        print("Loaded parameters:", list(vars(self.params).keys()))
 
         if config.original_run is not None:
             self.og_metrics = pickle.load(open(config.original_run +
