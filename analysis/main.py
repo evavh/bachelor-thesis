@@ -3,6 +3,7 @@ from amuse.units import nbody_system
 import numpy
 import itertools
 import pickle
+import sys
 
 import helpers
 import core
@@ -12,12 +13,19 @@ import plotting
 from data import Data
 
 
+def flushed_print(string):
+    print(string)
+    sys.stdout.flush()
+
+
 if __name__ == '__main__':
+    flushed_print("Analysis script started.")
     config = input_output.parse_arguments()
 
     input_output.create_directory(config.output)
     input_output.create_directory(config.input)
 
+    flushed_print("Starting data reading.")
     data = Data(config)
     print('')
 

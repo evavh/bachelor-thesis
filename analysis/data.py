@@ -1,14 +1,22 @@
 import pickle
 import os
 import numpy
+import sys
+
+
+def flushed_print(string):
+    print(string)
+    sys.stdout.flush()
 
 
 def load_snapshots(snapshot_dir):
     snapshots = []
     for filename in os.listdir(snapshot_dir):
+        flushed_print(f"Trying to load {filename}")
         if filename.endswith('.pkl') and "snapshot" in filename:
             with open(snapshot_dir+filename, 'rb') as inputfile:
                 snapshots.append(pickle.load(inputfile))
+        flushed_print("Succesfully loaded it.")
     return snapshots
 
 
