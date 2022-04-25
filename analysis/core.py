@@ -52,8 +52,11 @@ def find_core_stars(data, t_bin_0):
     return core_star_ids
 
 
+# output is in kT
 def calculate_work(data, first_binary_ids, work_start_i,
-                   work_end_i, core_star_ids, kT):
+                   work_end_i, core_star_ids):
+    kT = 1/(6*data.params.n)
+
     star_works = {}
     total_star_works = {}
     print("Starting work function calculation.")
