@@ -39,10 +39,10 @@ def find_core_stars(data, t_bin_0):
     snapshots = data.snapshots
     metrics_by_time = data.by_time()
 
-    density_centre = metrics_by_time[t_bin_0]['density_centre']
-    core_radius = metrics_by_time[t_bin_0]['rcore']
+    density_centre = metrics_by_time[t_bin_0.number]['density_centre']
+    core_radius = metrics_by_time[t_bin_0.number]['rcore']
 
-    t_bin_0_index = helpers.time_to_index(t_bin_0, data)
+    t_bin_0_index = helpers.time_to_index(t_bin_0.number, data)
     core_stars = helpers.stars_in_area(snapshots[t_bin_0_index],
                                        density_centre,
                                        core_radius)

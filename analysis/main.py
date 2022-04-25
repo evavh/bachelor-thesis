@@ -83,17 +83,16 @@ if __name__ == '__main__':
     elif config.calc_work:
         core_star_ids = core.find_core_stars(data, t_bin_0)
 
-        work_start_i = helpers.time_to_index(t_bin_0 - 1,
+        work_start_i = helpers.time_to_index(t_bin_0.number - 1,
                                              data)
-        work_end_i = helpers.time_to_index(t_bin_0, data)
-        print(f"Calculating work from {t_bin_0-1} to {t_bin_0}.")
+        work_end_i = helpers.time_to_index(t_bin_0.number, data)
+        print(f"Calculating work from {t_bin_0.number-1} to {t_bin_0}.")
 
         star_works, total_star_works = core.calculate_work(data,
                                                            first_binary_ids,
                                                            work_start_i,
                                                            work_end_i,
-                                                           core_star_ids,
-                                                           kT)
+                                                           core_star_ids)
         pickle.dump(star_works, open(config.output+"star_works.pkl",
                                      "wb"))
         pickle.dump(total_star_works,

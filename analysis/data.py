@@ -48,13 +48,13 @@ class Data:
                   f" and end at t={self.metrics['times'][-1]}")
 
         self.snapshots = load_snapshots(config.input, self.metrics)
-        print(f"Loaded snapshots of {len(self.snapshots)} timesteps.")
+        flushed_print(f"Loaded snapshots of {len(self.snapshots)} timesteps.")
 
         self.consts = pickle.load(open(config.input+"constants.pkl", "rb"))
-        print("Loaded constants:", list(self.consts.keys()))
+        flushed_print(f"Loaded constants: {list(self.consts.keys())}")
 
         self.params = pickle.load(open(config.input+"parameters.pkl", "rb"))
-        print("Loaded parameters:", list(vars(self.params).keys()))
+        flushed_print(f"Loaded parameters: {list(vars(self.params).keys())}")
 
         if config.original_run is not None:
             self.og_metrics = pickle.load(open(config.original_run +
