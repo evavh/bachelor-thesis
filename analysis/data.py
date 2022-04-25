@@ -41,7 +41,10 @@ class Data:
         if config.input == ("/home/s1478621/job_outputs/"
                             "s65561_detailed_continue/"):
             for key in self.metrics:
-                self.metrics[key] = self.metrics[key][10802:]
+                self.metrics[key] = self.metrics[key][9515:-3838]
+
+            print(f"Metrics start at t={self.metrics['times'][0]}"
+                  f" and end at t={self.metrics['times'][-1]}")
 
         if config.original_run is not None:
             self.og_metrics = pickle.load(open(config.original_run +
