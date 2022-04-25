@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
         binaries, binding_energies = core.find_binaries(stars, minimum_Eb)
         if len(binaries) > 0 and params.t_end is None:
-            params.t_end = time + (5 | nbody_system.time)
+            params.t_end = time + (1 | nbody_system.time)
             print(f"Set t_end to {params.t_end}")
 
     gravity.stop()
