@@ -85,8 +85,8 @@ if __name__ == '__main__':
 
         work_start_i = helpers.time_to_index(t_bin_0.number - 1,
                                              data)
-        work_end_i = helpers.time_to_index(t_bin_0.number, data)
-        print(f"Calculating work from {t_bin_0.number-1} to {t_bin_0}.")
+        work_end_i = helpers.time_to_index(t_bin_10.number, data)
+        print(f"Calculating work from {t_bin_0.number-1} to {t_bin_10}.")
 
         star_works, total_star_works = core.calculate_work(data,
                                                            first_binary_ids,
