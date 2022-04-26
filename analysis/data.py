@@ -13,12 +13,10 @@ def load_snapshots(snapshot_dir, metrics):
 
     for time in metrics['times']:
         filename = f"{snapshot_dir}snapshot_{time}.pkl"
-        flushed_print(f"Trying to load {filename}")
+        print(f"Loading snapshot for {time.number}", end='\r')
 
         with open(filename, 'rb') as inputfile:
             snapshots.append(pickle.load(inputfile))
-
-        flushed_print("Succesfully loaded it.")
 
     return snapshots
 

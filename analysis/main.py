@@ -99,10 +99,9 @@ if __name__ == '__main__':
                     open(config.output+"total_star_works.pkl", "wb"))
         pickle.dump((work_start_i, work_end_i),
                     open(config.output+"work_indexes.pkl", 'wb'))
-
-        top_stars = dict(itertools.islice(star_works.items(), 10))
     else:
         quit()
 
+    top_stars = dict(itertools.islice(star_works.items(), 10))
     plotting.work_function(top_stars, data, config, Eb,
                            work_start_i, work_end_i)
