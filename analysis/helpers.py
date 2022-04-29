@@ -1,3 +1,6 @@
+import numpy
+
+
 def ids_to_stars(snapshot, ids):
     def criterium(id): return id in ids
     return snapshot.select(criterium, ['id'])
@@ -48,3 +51,25 @@ def stars_in_area(snapshot, density_centre, radius):
                 z > z_min and z < z_max)
 
     return snapshot.select(within_limits, ['x', 'y', 'z'])
+
+
+def work_slice(work, start, end):
+    assert start <= end
+
+    if start == 0:
+        return work[start:end]
+
+    return work[start:end] - work[start-1]
+
+
+def slice_works(star_works, start_index, end_index):
+    cropped_star_works = {}
+    cropped_work_totals = {}
+
+    for star in star_works:
+        cropped_star_works[star] = work_slice(star_works[star],
+                                              start_index,
+                                              end_index)
+        cropped_work_totals[star] = numpy.sum(cropped_star_works[star])
+
+    return cropped_star_works, cropped_work_totals

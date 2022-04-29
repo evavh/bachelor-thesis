@@ -95,6 +95,18 @@ if __name__ == '__main__':
     else:
         quit()
 
-    top_stars = dict(itertools.islice(star_works.items(), 10))
+    slice_start = helpers.time_to_index(t_bin_0.number - 0.1, data)
+    slice_end = helpers.time_to_index(t_bin_0.number + 0.1, data)
+    cropped_star_works, cropped_work_totals = helpers.slice_works(star_works,
+                                                                  slice_start,
+                                                                  slice_end)
+
+    top_stars = dict(itertools.islice(cropped_star_works.items(), 10))
+    cropped_work_totals = dict(sorted(cropped_work_totals.items(),
+                                      key=lambda x: abs(
+                                          cropped_work_totals[x[0]]),
+                                      reverse=True))
+    for star in top_stars:
+        print(f"{round(star)}: {round(cropped_work_totals[star])}")
     plotting.work_function(top_stars, data, config, Eb,
-                           work_start_i, work_end_i)
+                           slice_start, slice_end)
