@@ -51,26 +51,19 @@ if __name__ == '__main__':
     plotting.radii(data, config)
     plotting.number_of_binaries(data, config, t_rhi)
     plotting.integration_time(data, config)
-    plotting.N_core(data, config)
+
+    if not config.fast_plot:
+        plotting.N_core(data, config)
 
     if first_binary_ids is None:
         quit()
 
-    t_bin_0 = None
-    Eb = []
-    for snapshot, time in zip(data.snapshots, data.metrics['times']):
-        first_binary = helpers.ids_to_stars(snapshot, first_binary_ids)
-        if formulas.binding_energy(*first_binary) \
-                > 0 | nbody_system.energy:
-            if t_bin_0 is None:
-                t_bin_0 = time
-                print((f"It has formed by t = {t_bin_0} = "
-                       f"{round(t_bin_0/t_rhi, 2)} t_rhi."))
-
-        Eb.append(formulas.binding_energy(*first_binary)
-                  .value_in(nbody_system.energy))
-
-    Eb = numpy.array(Eb)/kT
+    if config.fast_plot:
+        Eb, t_bin_0 = pickle.load(open(config.output+"Eb-t_bin_0.pkl", 'rb'))
+        print(f"The binary has formed by {t_bin_0}")
+    else:
+        Eb, t_bin_0 = core.scan_binary_metrics(data, first_binary_ids, t_rhi)
+        pickle.dump((Eb, t_bin_0), open(config.output+"Eb-t_bin_0.pkl", "wb"))
 
     if config.load_work:
         star_works = pickle.load(open(config.output+"star_works.pkl",

@@ -13,6 +13,8 @@ def parse_arguments():
                         default="analysis/data/")
     parser.add_argument("-o", "--output", help="Directory to put output",
                         default="analysis/plots/")
+    parser.add_argument("--fast_plot", help="skip loading snapshots.",
+                        action='store_true')
     parser.add_argument("--scatter", help="generate scatter plots.",
                         action='store_true')
     parser.add_argument("--scatter_core", help="generate scatter of core.",

@@ -1,9 +1,12 @@
 import datetime
+import numpy
 
 import helpers
 import formulas
 import plotting
 import input_output
+
+from amuse.units import nbody_system
 
 
 def find_first_binary(data, t_rhi):
@@ -33,6 +36,28 @@ def find_first_binary(data, t_rhi):
 
     print("No binaries found.")
     return None, None
+
+
+def scan_binary_metrics(data, first_binary_ids, t_rhi):
+    t_bin_0 = None
+    Eb = []
+
+    for snapshot, time in zip(data.snapshots, data.metrics['times']):
+        first_binary = helpers.ids_to_stars(snapshot, first_binary_ids)
+        if formulas.binding_energy(*first_binary) \
+                > 0 | nbody_system.energy:
+            if t_bin_0 is None:
+                t_bin_0 = time
+                print((f"It has formed by t = {t_bin_0} = "
+                       f"{round(t_bin_0/t_rhi, 2)} t_rhi."))
+
+        Eb.append(formulas.binding_energy(*first_binary)
+                  .value_in(nbody_system.energy))
+
+    kT = 1/(6*data.params.n)
+    Eb = numpy.array(Eb)/kT
+
+    return Eb, t_bin_0
 
 
 def find_core_stars(data, t_bin_0):

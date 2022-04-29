@@ -45,8 +45,14 @@ class Data:
             print(f"Metrics start at t={self.metrics['times'][0]}"
                   f" and end at t={self.metrics['times'][-1]}")
 
-        self.snapshots = load_snapshots(config.input, self.metrics)
-        flushed_print(f"Loaded snapshots of {len(self.snapshots)} timesteps.")
+        if not config.fast_plot:
+            self.snapshots = load_snapshots(config.input, self.metrics)
+            flushed_print(f"Loaded snapshots of {len(self.snapshots)} steps")
+
+            for key in self.metrics:
+                assert (len(self.metrics[key]) == len(self.snapshots)),\
+                    (f"len({key})={len(self.metrics[key])},"
+                     f"there are {len(self.snapshots)} snaps")
 
         self.consts = pickle.load(open(config.input+"constants.pkl", "rb"))
         flushed_print(f"Loaded constants: {list(self.consts.keys())}")
@@ -60,11 +66,6 @@ class Data:
             print("Loaded original run metrics:", list(self.og_metrics.keys()))
         else:
             self.og_metrics = None
-
-        for key in self.metrics:
-            assert (len(self.metrics[key]) == len(self.snapshots)),\
-                (f"len({key})={len(self.metrics[key])},"
-                 f"there are {len(self.snapshots)} snaps")
 
     def by_time(self):
         if self.metrics_by_time is None:
