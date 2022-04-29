@@ -1,5 +1,6 @@
 import datetime
 import numpy
+from collections import OrderedDict
 
 import helpers
 import formulas
@@ -82,8 +83,8 @@ def calculate_work(data, first_binary_ids, work_start_i,
                    work_end_i, core_star_ids):
     kT = 1/(6*data.params.n)
 
-    star_works = {}
-    total_star_works = {}
+    star_works = OrderedDict()
+    total_star_works = OrderedDict()
     print("Starting work function calculation.")
     start_of_calc = datetime.datetime.now()
 
@@ -101,10 +102,10 @@ def calculate_work(data, first_binary_ids, work_start_i,
     calc_time_s = calc_time_s.total_seconds()
     print(f"Work function calculation finished after {calc_time_s} s.")
 
-    star_works = dict(sorted(star_works.items(),
+    star_works = OrderedDict(sorted(star_works.items(),
                              key=lambda x: abs(total_star_works[x[0]]),
                              reverse=True))
-    total_star_works = dict(sorted(total_star_works.items(),
+    total_star_works = OrderedDict(sorted(total_star_works.items(),
                                    key=lambda x: abs(total_star_works[x[0]]),
                                    reverse=True))
 

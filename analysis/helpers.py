@@ -1,4 +1,5 @@
 import numpy
+import collections
 
 
 def ids_to_stars(snapshot, ids):
@@ -63,8 +64,8 @@ def work_slice(work, start, end):
 
 
 def slice_works(star_works, start_index, end_index):
-    cropped_star_works = {}
-    cropped_work_totals = {}
+    cropped_star_works = collections.OrderedDict()
+    cropped_work_totals = collections.OrderedDict()
 
     for star in star_works:
         cropped_star_works[star] = work_slice(star_works[star],
