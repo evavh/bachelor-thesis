@@ -87,6 +87,9 @@ def calculate_work(data, first_binary_ids, work_start_i,
     print("Starting work function calculation.")
     start_of_calc = datetime.datetime.now()
 
+    core_star_ids.pop(first_binary_ids[0])
+    core_star_ids.pop(first_binary_ids[1])
+
     for star_id in core_star_ids:
         key = star_id.number
         star_works[key], total_star_works[key] = \
@@ -101,6 +104,9 @@ def calculate_work(data, first_binary_ids, work_start_i,
     star_works = dict(sorted(star_works.items(),
                              key=lambda x: abs(total_star_works[x[0]]),
                              reverse=True))
+    total_star_works = dict(sorted(total_star_works.items(),
+                                   key=lambda x: abs(total_star_works[x[0]]),
+                                   reverse=True))
 
     return star_works, total_star_works
 
