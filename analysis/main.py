@@ -60,7 +60,8 @@ if __name__ == '__main__':
         Eb, t_bin_0 = pickle.load(open(config.output+"Eb-t_bin_0.pkl", 'rb'))
         print(f"The binary has formed by {t_bin_0}")
     else:
-        Eb, t_bin_0 = core.scan_binary_metrics(data, first_binary_ids, t_rhi)
+        Eb, t_bin_0 = core.scan_binary_metrics(data, first_binary_ids, t_rhi,
+                                               t_bin_10, False)
         pickle.dump((Eb, t_bin_0), open(config.output+"Eb-t_bin_0.pkl", "wb"))
 
     if config.load_work:
@@ -92,7 +93,6 @@ if __name__ == '__main__':
                     open(config.output+"work_indexes.pkl", 'wb'))
     else:
         quit()
-
 
     slice_start_times_i = helpers.time_to_index(t_bin_0.number - 0.1, data)
     slice_end_times_i = helpers.time_to_index(t_bin_0.number + 0.1, data)

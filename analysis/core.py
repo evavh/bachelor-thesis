@@ -39,21 +39,35 @@ def find_first_binary(data, t_rhi):
     return None, None
 
 
-def scan_binary_metrics(data, first_binary_ids, t_rhi):
+def scan_binary_metrics(data, first_binary_ids, t_rhi, t_bin_10,
+                        reverse: bool):
     t_bin_0 = None
     Eb = []
 
-    for snapshot, time in zip(data.snapshots, data.metrics['times']):
+    if reverse is True:
+        times = numpy.flip(data.metrics['times'])
+        snapshots = data.snapshots
+        snapshots.reverse()
+        print("Looking for t_bin_0 in reversed order")
+    elif reverse is False:
+        times = data.metrics['times']
+        snapshots = data.snapshots
+        print("Looking for t_bin_0 in non-reversed order")
+    else:
+        raise TypeError("reverse should be a bool")
+
+    for snapshot, time in zip(snapshots, times):
         first_binary = helpers.ids_to_stars(snapshot, first_binary_ids)
-        if formulas.binding_energy(*first_binary) \
-                > 0 | nbody_system.energy:
+        binding_energy = formulas.binding_energy(*first_binary).number
+
+        if (not reverse and binding_energy > 0) \
+                or (reverse and binding_energy <= 0 and time < t_bin_10):
             if t_bin_0 is None:
                 t_bin_0 = time
                 print((f"It has formed by t = {t_bin_0} = "
                        f"{round(t_bin_0/t_rhi, 2)} t_rhi."))
 
-        Eb.append(formulas.binding_energy(*first_binary)
-                  .value_in(nbody_system.energy))
+        Eb.append(binding_energy)
 
     kT = 1/(6*data.params.n)
     Eb = numpy.array(Eb)/kT
