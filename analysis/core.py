@@ -88,8 +88,8 @@ def calculate_work(data, first_binary_ids, work_start_i,
     print("Starting work function calculation.")
     start_of_calc = datetime.datetime.now()
 
-    core_star_ids.pop(first_binary_ids[0])
-    core_star_ids.pop(first_binary_ids[1])
+    core_star_ids.remove(first_binary_ids[0])
+    core_star_ids.remove(first_binary_ids[1])
 
     for star_id in core_star_ids:
         key = star_id.number
@@ -102,10 +102,10 @@ def calculate_work(data, first_binary_ids, work_start_i,
     calc_time_s = calc_time_s.total_seconds()
     print(f"Work function calculation finished after {calc_time_s} s.")
 
-    star_works = OrderedDict(sorted(star_works.items(),
+    star_works = dict(sorted(star_works.items(),
                              key=lambda x: abs(total_star_works[x[0]]),
                              reverse=True))
-    total_star_works = OrderedDict(sorted(total_star_works.items(),
+    total_star_works = dict(sorted(total_star_works.items(),
                                    key=lambda x: abs(total_star_works[x[0]]),
                                    reverse=True))
 

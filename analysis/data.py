@@ -47,6 +47,7 @@ class Data:
 
         if not config.fast_plot:
             self.snapshots = load_snapshots(config.input, self.metrics)
+            print('')
             flushed_print(f"Loaded snapshots of {len(self.snapshots)} steps")
 
             for key in self.metrics:

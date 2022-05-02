@@ -1,5 +1,3 @@
-from amuse.units import nbody_system
-
 import numpy
 import itertools
 import pickle
@@ -95,11 +93,14 @@ if __name__ == '__main__':
     else:
         quit()
 
-    slice_start = helpers.time_to_index(t_bin_0.number - 0.1, data)
-    slice_end = helpers.time_to_index(t_bin_0.number + 0.1, data)
-    cropped_star_works, cropped_work_totals = helpers.slice_works(star_works,
-                                                                  slice_start,
-                                                                  slice_end)
+
+    slice_start_times_i = helpers.time_to_index(t_bin_0.number - 0.1, data)
+    slice_end_times_i = helpers.time_to_index(t_bin_0.number + 0.1, data)
+
+    cropped_star_works, cropped_work_totals = \
+        helpers.slice_works(star_works, work_start_i,
+                            slice_start_times_i,
+                            slice_end_times_i)
 
     top_stars = dict(itertools.islice(cropped_star_works.items(), 10))
     cropped_work_totals = dict(sorted(cropped_work_totals.items(),
@@ -109,4 +110,4 @@ if __name__ == '__main__':
     for star in top_stars:
         print(f"{round(star)}: {round(cropped_work_totals[star])}")
     plotting.work_function(top_stars, data, config, Eb,
-                           slice_start, slice_end)
+                           slice_start_times_i, slice_end_times_i)

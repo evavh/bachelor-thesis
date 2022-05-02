@@ -63,14 +63,18 @@ def work_slice(work, start, end):
     return work[start:end] - work[start-1]
 
 
-def slice_works(star_works, start_index, end_index):
+def slice_works(star_works, work_start_i,
+                times_start_i, times_end_i):
     cropped_star_works = collections.OrderedDict()
     cropped_work_totals = collections.OrderedDict()
 
+    slice_start = times_start_i - work_start_i
+    slice_end = times_end_i - work_start_i
+
     for star in star_works:
         cropped_star_works[star] = work_slice(star_works[star],
-                                              start_index,
-                                              end_index)
+                                              slice_start,
+                                              slice_end)
         cropped_work_totals[star] = numpy.sum(cropped_star_works[star])
 
     return cropped_star_works, cropped_work_totals
