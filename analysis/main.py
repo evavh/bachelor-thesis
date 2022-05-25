@@ -102,11 +102,17 @@ if __name__ == '__main__':
                             slice_start_times_i,
                             slice_end_times_i)
 
-    top_stars = dict(itertools.islice(cropped_star_works.items(), 10))
     cropped_work_totals = dict(sorted(cropped_work_totals.items(),
                                       key=lambda x: abs(
                                           cropped_work_totals[x[0]]),
                                       reverse=True))
+    cropped_star_works = dict(sorted(cropped_star_works.items(),
+                                     key=lambda x: abs(
+                                         cropped_work_totals[x[0]]),
+                                     reverse=True))
+
+    top_stars = dict(itertools.islice(cropped_star_works.items(), 4))
+
     for star in top_stars:
         print(f"{round(star)}: {round(cropped_work_totals[star])}")
     plotting.work_function(top_stars, data, config, Eb,

@@ -72,6 +72,8 @@ def scan_binary_metrics(data, first_binary_ids, t_rhi, t_bin_10,
     kT = 1/(6*data.params.n)
     Eb = numpy.array(Eb)/kT
 
+    if reverse:
+        return numpy.flip(Eb), t_bin_0
     return Eb, t_bin_0
 
 
