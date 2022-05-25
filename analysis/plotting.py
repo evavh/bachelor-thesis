@@ -148,21 +148,25 @@ def N_core(data, config):
     pyplot.clf()
 
 
-def work_function(work_for_star, data, config, Eb, start, stop):
+
+
+def work_function(work_for_star, data, config, Eb, start, stop, taus=None):
     metrics = data.metrics
-    times = metrics['times'][start:stop]
+    if taus is None:
+        times = metrics['times'][start:stop].number
+    else:
+        times = taus[start:stop]
 
     for star in work_for_star:
-        pyplot.plot(times.value_in(nbody_system.time), work_for_star[star],
-                    label=str(star))
+        pyplot.plot(times, work_for_star[star],
+                    label=str(star), color='k', linewidth=0.7)
+    pyplot.plot(times,
+                Eb[start:stop], label="The binary", color='k', linewidth=2.0)
+    # pyplot.plot(times,
+    #             numpy.sum(list(work_for_star.values()), axis=0),
+    #             label="Total work by top stars", color='k', linewidth=0.7)
 
-    pyplot.plot(times.value_in(nbody_system.time),
-                Eb[start:stop], label="The binary")
-    pyplot.plot(times.value_in(nbody_system.time),
-                numpy.sum(list(work_for_star.values()), axis=0),
-                label="Total work by top stars")
-
-    pyplot.xlabel("t")
+    pyplot.xlabel(r"$\tau$")
     pyplot.ylabel("Work on / Eb of binary [kT]")
     pyplot.legend()
 

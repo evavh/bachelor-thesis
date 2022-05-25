@@ -115,5 +115,14 @@ if __name__ == '__main__':
 
     for star in top_stars:
         print(f"{round(star)}: {round(cropped_work_totals[star])}")
+
+    for index, time in enumerate(data.metrics['times']):
+        if time == t_bin_10:
+            t_bin_10_i = index
+            break
+
+    relative_taus = taus - taus[t_bin_10_i]
+
     plotting.work_function(top_stars, data, config, Eb,
-                           slice_start_times_i, slice_end_times_i)
+                           slice_start_times_i, slice_end_times_i,
+                           relative_taus)
