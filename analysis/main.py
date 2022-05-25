@@ -61,7 +61,7 @@ if __name__ == '__main__':
         print(f"The binary has formed by {t_bin_0}")
     else:
         Eb, t_bin_0 = core.scan_binary_metrics(data, first_binary_ids, t_rhi,
-                                               t_bin_10, False)
+                                               t_bin_10, True)
         pickle.dump((Eb, t_bin_0), open(config.output+"Eb-t_bin_0.pkl", "wb"))
 
     if config.load_work:
