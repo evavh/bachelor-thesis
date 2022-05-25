@@ -27,6 +27,15 @@ if __name__ == '__main__':
     data = Data(config)
     print('')
 
+    kT = 1.0/(6*1000)
+    Eb = []
+    id_1 = 34.0
+    id_2 = 501.0
+    for snapshot in data.snapshots:
+        binary = helpers.ids_to_stars(snapshot, (id_1, id_2))
+        Eb.append(formulas.binding_energy(*binary).number/kT)
+    plotting.Eb(data, config, Eb)
+
     if not data.params.variable_delta and config.calc_work:
         print("Work calc uses variable delta, invalid otherwise!")
 

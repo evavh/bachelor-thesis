@@ -153,6 +153,17 @@ def N_core(data, config):
     pyplot.clf()
 
 
+def Eb(data, config, Eb):
+    if data is None:
+        times = range(len(Eb))
+    else:
+        times = data.metrics['times'].number
+    pyplot.plot(times, Eb, color='k', linewidth=2.0)
+    pyplot.axhline(y=10.0, color='k', linestyle='--')
+    pyplot.xlabel("t")
+    pyplot.ylabel("Eb of the binary")
+    pyplot.savefig(config.output+"Eb.svg", format='svg')
+    pyplot.clf()
 
 
 def work_function(work_for_star, data, config, Eb, start, stop, taus=None):
