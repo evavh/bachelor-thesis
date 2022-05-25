@@ -75,10 +75,10 @@ if __name__ == '__main__':
     elif config.calc_work:
         core_star_ids = core.find_core_stars(data, t_bin_0)
 
-        work_start_i = helpers.time_to_index(t_bin_0.number - 1,
+        work_start_i = helpers.time_to_index(t_bin_0.number - 0.1,
                                              data)
-        work_end_i = helpers.time_to_index(t_bin_10.number, data)
-        print(f"Calculating work from {t_bin_0.number-1} to {t_bin_10}.")
+        work_end_i = helpers.time_to_index(t_bin_10.number + 0.1, data)
+        print(f"Calculating work from {t_bin_0.number-0.1} to {t_bin_10+0.1}.")
 
         star_works, total_star_works = core.calculate_work(data,
                                                            first_binary_ids,
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         quit()
 
     slice_start_times_i = helpers.time_to_index(t_bin_0.number - 0.1, data)
-    slice_end_times_i = helpers.time_to_index(t_bin_0.number + 0.1, data)
+    slice_end_times_i = helpers.time_to_index(t_bin_10.number + 0.1, data)
 
     cropped_star_works, cropped_work_totals = \
         helpers.slice_works(star_works, work_start_i,
