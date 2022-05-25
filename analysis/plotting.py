@@ -36,6 +36,7 @@ def scatter(snapshot, time, output_folder, xylims, rvir,
 
     x_of_stars = snapshot.x/rvir
     y_of_stars = snapshot.y/rvir
+    ids_of_stars = snapshot.id.number
 
     colours = []
     sizes = []
@@ -52,6 +53,10 @@ def scatter(snapshot, time, output_folder, xylims, rvir,
             sizes.append(0.1)
 
     pyplot.scatter(x_of_stars, y_of_stars, s=sizes, c=colours)
+
+    for x, y, id in zip(x_of_stars, y_of_stars, ids_of_stars):
+        pyplot.annotate(round(id), (x, y), fontsize=5)
+
     pyplot.xlabel("$x/r_v$")
     pyplot.ylabel("$y/r_v$")
 
