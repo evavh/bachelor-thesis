@@ -39,10 +39,29 @@ def find_first_binary(data, t_rhi):
     return None, None
 
 
-def scan_binary_metrics(data, first_binary_ids, t_rhi, t_bin_10,
-                        reverse: bool):
+def scan_binary_metrics(data, config, t_rhi, kT,
+                        reverse):
     t_bin_0 = None
-    Eb = []
+
+    if config.binary_ids is None:
+        first_binary_ids, t_bin_10 = find_first_binary(data, t_rhi)
+    else:
+        Eb = []
+        first_binary_ids = config.binary_ids
+        t_bin_10 = None
+
+        for index, snapshot in enumerate(data.snapshots):
+            binary = helpers.ids_to_stars(snapshot, first_binary_ids)
+            binding_energy = formulas.binding_energy(*binary).number/kT
+            Eb.append(binding_energy)
+            if binding_energy > config.energy_threshold and t_bin_10 is None:
+                t_bin_10 = data.metrics['times'][index]
+                print(f"Binary reached {config.energy_threshold} kT",
+                      f" at {t_bin_10}")
+
+        if t_bin_10 is None:
+            print("No binary found")
+            quit()
 
     if reverse is True:
         times = numpy.flip(data.metrics['times'])
@@ -56,6 +75,7 @@ def scan_binary_metrics(data, first_binary_ids, t_rhi, t_bin_10,
     else:
         raise TypeError("reverse should be a bool")
 
+    Eb = []
     for snapshot, time in zip(snapshots, times):
         first_binary = helpers.ids_to_stars(snapshot, first_binary_ids)
         binding_energy = formulas.binding_energy(*first_binary).number
@@ -73,8 +93,8 @@ def scan_binary_metrics(data, first_binary_ids, t_rhi, t_bin_10,
     Eb = numpy.array(Eb)/kT
 
     if reverse:
-        return numpy.flip(Eb), t_bin_0
-    return Eb, t_bin_0
+        return first_binary_ids, numpy.flip(Eb), t_bin_0
+    return first_binary_ids, Eb, t_bin_0
 
 
 def find_core_stars(data, t_bin_0):

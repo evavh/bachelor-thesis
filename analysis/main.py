@@ -27,14 +27,8 @@ if __name__ == '__main__':
     data = Data(config)
     print('')
 
-    kT = 1.0/(6*1000)
-    Eb = []
-    id_1 = 34.0
-    id_2 = 501.0
-    for snapshot in data.snapshots:
-        binary = helpers.ids_to_stars(snapshot, (id_1, id_2))
-        Eb.append(formulas.binding_energy(*binary).number/kT)
-    plotting.Eb(data, config, Eb)
+    print((f"Binary override: {config.binary_ids},"
+           f" Eb threshold: {config.energy_threshold} kT"))
 
     if not data.params.variable_delta and config.calc_work:
         print("Work calc uses variable delta, invalid otherwise!")
@@ -52,7 +46,15 @@ if __name__ == '__main__':
 
     print(f"t_max = {t_max.number} = {round(t_max/t_rhi, 2)} t_rhi")
 
-    first_binary_ids, t_bin_10 = core.find_first_binary(data, t_rhi)
+    if config.fast_plot:
+        Eb, t_bin_0, first_binary_ids = pickle.load(
+            open(config.output+"Eb-t_bin_0.pkl", 'rb'))
+        print(f"The binary has formed by {t_bin_0}")
+    else:
+        Eb, t_bin_0, first_binary_ids = core.scan_binary_metrics(
+            data, config, t_rhi, kT, True)
+        pickle.dump((Eb, t_bin_0, first_binary_ids),
+                    open(config.output+"Eb-t_bin_0.pkl", "wb"))
 
     core.produce_scatterplots(data, config, first_binary_ids, t_max)
     plotting.radii(data, config)
@@ -64,14 +66,6 @@ if __name__ == '__main__':
 
     if first_binary_ids is None:
         quit()
-
-    if config.fast_plot:
-        Eb, t_bin_0 = pickle.load(open(config.output+"Eb-t_bin_0.pkl", 'rb'))
-        print(f"The binary has formed by {t_bin_0}")
-    else:
-        Eb, t_bin_0 = core.scan_binary_metrics(data, first_binary_ids, t_rhi,
-                                               t_bin_10, True)
-        pickle.dump((Eb, t_bin_0), open(config.output+"Eb-t_bin_0.pkl", "wb"))
 
     if config.load_work:
         star_works = pickle.load(open(config.output+"star_works.pkl",
@@ -87,7 +81,8 @@ if __name__ == '__main__':
         work_start_i = helpers.time_to_index(t_bin_0.number - 0.1,
                                              data)
         work_end_i = helpers.time_to_index(t_bin_10.number + 0.1, data)
-        print(f"Calculating work from {t_bin_0.number-0.1} to {t_bin_10+0.1}.")
+        print((f"Calculating work from {t_bin_0.number-0.1} to "
+               f"{t_bin_10.number+0.1}."))
 
         star_works, total_star_works = core.calculate_work(data,
                                                            first_binary_ids,

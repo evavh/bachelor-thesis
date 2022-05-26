@@ -13,6 +13,10 @@ def parse_arguments():
                         default="analysis/data/")
     parser.add_argument("-o", "--output", help="Directory to put output",
                         default="analysis/plots/")
+    parser.add_argument("--binary_ids", help="override binary ids.",
+                        default=None, type=int, nargs=2)
+    parser.add_argument("--energy_threshold", help="Eb threshold in kT.",
+                        default=10.0, type=float)
     parser.add_argument("--fast_plot", help="skip loading snapshots.",
                         action='store_true')
     parser.add_argument("--scatter", help="generate scatter plots.",
