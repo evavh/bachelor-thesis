@@ -1,5 +1,8 @@
 import os
 import argparse
+import re
+
+from amuse.units import nbody_system
 
 
 def create_directory(directory_name):
@@ -39,3 +42,15 @@ def parse_arguments():
         arguments.original_run += "/"
 
     return arguments
+
+
+def extract_times(input_dir):
+    files = os.listdir(input_dir)
+
+    times = []
+    for file in files:
+        matches = re.match(r"snapshot_(.*) time.pkl", file)
+        if matches is not None:
+            times.append(float(matches[1]))
+
+    return times | nbody_system.time

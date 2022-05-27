@@ -3,6 +3,8 @@ import itertools
 import pickle
 import sys
 
+from amuse.units import nbody_system
+
 import helpers
 import core
 import input_output
@@ -36,13 +38,18 @@ if __name__ == '__main__':
     kT = 1/(6*data.params.n)
     t_min = data.metrics['times'][0]
     t_max = data.metrics['times'][-1]
-    t_rhi = formulas.t_rh(data)
-    times_crc = data.metrics['t_crc']
 
-    if data.params.variable_delta:
-        taus = numpy.cumsum(numpy.full(len(times_crc), 0.01))
+    if 'r50pc' in data.metrics:
+        t_rhi = formulas.t_rh(data)
+        times_crc = data.metrics['t_crc']
+
+        if data.params.variable_delta:
+            taus = numpy.cumsum(numpy.full(len(times_crc), 0.01))
+        else:
+            taus = numpy.cumsum(data.params.delta_t/times_crc)
     else:
-        taus = numpy.cumsum(data.params.delta_t/times_crc)
+        print("Incomplete metrics, t_rhi and taus arbitrary")
+        t_rhi = 1 | nbody_system.time
 
     print(f"t_max = {t_max.number} = {round(t_max/t_rhi, 2)} t_rhi")
 

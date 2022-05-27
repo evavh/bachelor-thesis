@@ -2,6 +2,8 @@ import pickle
 import numpy
 import sys
 
+import input_output
+
 
 def flushed_print(string):
     print(string)
@@ -34,9 +36,14 @@ class Data:
     dts = None
 
     def __init__(self, config):
-        self.metrics = pickle.load(
-            open(config.input+"cluster_metrics.pkl", "rb"))
-        print("Loaded metrics:", list(self.metrics.keys()))
+        try:
+            self.metrics = pickle.load(
+                open(config.input+"cluster_metrics.pkl", "rb"))
+            print("Loaded metrics:", list(self.metrics.keys()))
+        except EOFError:
+            print("Metrics truncated, only times will be available.")
+            self.metrics = {}
+            self.metrics['times'] = input_output.extract_times(config.input)
 
         if config.input == ("/home/s1478621/job_outputs/"
                             "s65561_detailed_continue/"):
