@@ -57,7 +57,7 @@ def scan_binary_metrics(data, config, t_rhi, kT,
             if binding_energy > config.energy_threshold and t_bin_10 is None:
                 t_bin_10 = data.metrics['times'][index]
                 print(f"Binary reached {config.energy_threshold} kT",
-                      f" at {t_bin_10}")
+                      f"at {t_bin_10}")
 
         if t_bin_10 is None:
             print("No binary found")
@@ -93,8 +93,8 @@ def scan_binary_metrics(data, config, t_rhi, kT,
     Eb = numpy.array(Eb)/kT
 
     if reverse:
-        return first_binary_ids, numpy.flip(Eb), t_bin_0
-    return first_binary_ids, Eb, t_bin_0
+        return first_binary_ids, numpy.flip(Eb), t_bin_0, t_bin_10
+    return first_binary_ids, Eb, t_bin_0, t_bin_10
 
 
 def find_core_stars(data, t_bin_0):

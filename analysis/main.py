@@ -47,14 +47,16 @@ if __name__ == '__main__':
     print(f"t_max = {t_max.number} = {round(t_max/t_rhi, 2)} t_rhi")
 
     if config.fast_plot:
-        Eb, t_bin_0, first_binary_ids = pickle.load(
+        first_binary_ids, Eb, t_bin_0, t_bin_10 = pickle.load(
             open(config.output+"Eb-t_bin_0.pkl", 'rb'))
         print(f"The binary has formed by {t_bin_0}")
     else:
-        Eb, t_bin_0, first_binary_ids = core.scan_binary_metrics(
+        first_binary_ids, Eb, t_bin_0, t_bin_10 = core.scan_binary_metrics(
             data, config, t_rhi, kT, True)
-        pickle.dump((Eb, t_bin_0, first_binary_ids),
+        pickle.dump((first_binary_ids, Eb, t_bin_0, t_bin_10),
                     open(config.output+"Eb-t_bin_0.pkl", "wb"))
+
+    plotting.Eb(data, config, Eb)
 
     core.produce_scatterplots(data, config, first_binary_ids, t_max)
     plotting.radii(data, config)

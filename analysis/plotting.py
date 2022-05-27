@@ -154,6 +154,7 @@ def N_core(data, config):
 
 
 def Eb(data, config, Eb):
+    print("Plotting Eb")
     if data is None:
         times = range(len(Eb))
     else:
@@ -164,6 +165,7 @@ def Eb(data, config, Eb):
     pyplot.ylabel("Eb of the binary")
     pyplot.savefig(config.output+"Eb.svg", format='svg')
     pyplot.clf()
+    print("Finished plotting Eb")
 
 
 def work_function(work_for_star, data, config, Eb, start, stop, taus=None):
