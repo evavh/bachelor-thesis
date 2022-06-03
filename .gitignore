@@ -21,3 +21,4 @@ job_outputs/
 analysis/plot_222-223/
 analysis/s65561_detailed_continue_t0-1_t10/
 *.svg
+stray_plots/

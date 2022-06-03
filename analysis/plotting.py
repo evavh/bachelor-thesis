@@ -160,7 +160,7 @@ def Eb(data, config, Eb):
     else:
         times = data.metrics['times'].number
     pyplot.plot(times, Eb, color='k', linewidth=2.0)
-    pyplot.axhline(y=10.0, color='k', linestyle='--')
+    pyplot.axhline(y=config.energy_threshold, color='k', linestyle='--')
     pyplot.xlabel("t")
     pyplot.ylabel("Eb of the binary")
     pyplot.savefig(config.output+"Eb.svg", format='svg')

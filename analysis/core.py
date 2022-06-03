@@ -61,7 +61,7 @@ def scan_binary_metrics(data, config, t_rhi, kT,
 
         if t_bin_10 is None:
             print("No binary found")
-            quit()
+            return config.binary_ids, Eb, t_bin_0, t_bin_10
 
     if reverse is True:
         times = numpy.flip(data.metrics['times'])
