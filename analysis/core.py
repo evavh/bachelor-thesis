@@ -167,7 +167,9 @@ def produce_scatterplots(data, config, first_binary_ids, t_max):
             rvir = data.by_time()[time.number]['rvir']
 
             if first_binary_ids is not None:
-                plotting.scatter(snapshot, time, output_folder, xylims, rvir,
+                plotting.scatter(config, snapshot, time, output_folder, xylims,
+                                 rvir,
                                  first_binary_ids)
             else:
-                plotting.scatter(snapshot, time, output_folder, xylims, rvir)
+                plotting.scatter(config, snapshot, time,
+                                 output_folder, xylims, rvir)

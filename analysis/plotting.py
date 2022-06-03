@@ -25,37 +25,38 @@ def get_xylim(data, time, radius_key):
     return (neg_xlim, neg_ylim, pos_xlim, pos_ylim)
 
 
-def scatter(snapshot, time, output_folder, xylims, rvir,
+def scatter(config, snapshot, time, output_folder, xylims, rvir,
             first_binary_ids=None):
     if not output_folder.endswith("/"):
         output_folder += "/"
+
+    x_of_stars = snapshot.x/rvir
+    y_of_stars = snapshot.y/rvir
+
+    pyplot.scatter(x_of_stars, y_of_stars, s=0.1, c='k')
 
     first_binary = None
     if first_binary_ids is not None:
         first_binary = helpers.ids_to_stars(snapshot, first_binary_ids)
 
-    x_of_stars = snapshot.x/rvir
-    y_of_stars = snapshot.y/rvir
-    ids_of_stars = snapshot.id.number
+        x_of_binary = first_binary.x/rvir
+        y_of_binary = first_binary.y/rvir
 
-    colours = []
-    sizes = []
-    for star in snapshot:
-        if first_binary is not None:
-            if star == first_binary[0] or star == first_binary[1]:
-                colours.append('red')
-                sizes.append(10)
-            else:
-                colours.append('blue')
-                sizes.append(0.1)
-        else:
-            colours.append('blue')
-            sizes.append(0.1)
+        pyplot.scatter(x_of_binary, y_of_binary, s=30.0,
+                       fc='w', ec='k', marker='o')
 
-    pyplot.scatter(x_of_stars, y_of_stars, s=sizes, c=colours)
+        for x, y, id in zip(x_of_binary, y_of_binary, first_binary_ids):
+            pyplot.annotate(round(id), (x + 0.01, y + 0.01), fontsize=5)
 
-    for x, y, id in zip(x_of_stars, y_of_stars, ids_of_stars):
-        pyplot.annotate(round(id), (x, y), fontsize=5)
+    interesting_ids = config.interesting
+    if interesting_ids is not None:
+        interesting_stars = helpers.ids_to_stars(snapshot, interesting_ids)
+
+        x_of_interesting = interesting_stars.x/rvir
+        y_of_interesting = interesting_stars.y/rvir
+
+        for x, y, id in zip(x_of_interesting, y_of_interesting, interesting_ids):
+            pyplot.annotate(round(id), (x, y), fontsize=5)
 
     pyplot.xlabel("$x/r_v$")
     pyplot.ylabel("$y/r_v$")

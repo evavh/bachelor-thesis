@@ -4,6 +4,7 @@ import pickle
 import sys
 
 from amuse.units import nbody_system
+import amuse
 
 import helpers
 import core
