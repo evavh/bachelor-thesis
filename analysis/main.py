@@ -48,8 +48,12 @@ if __name__ == '__main__':
             taus = numpy.cumsum(numpy.full(len(times_crc), 0.01))
         else:
             taus = numpy.cumsum(data.params.delta_t/times_crc)
+    elif data.og_metrics is not None:
+        t_rhi = formulas.t_rh(data, N=1000)
+        print("Incomplete metrics, taus arbitrary")
     else:
         print("Incomplete metrics, t_rhi and taus arbitrary")
+        print("(provide og run for t_rhi)")
         t_rhi = 1 | nbody_system.time
 
     print(f"t_max = {t_max.number} = {round(t_max/t_rhi, 2)} t_rhi")

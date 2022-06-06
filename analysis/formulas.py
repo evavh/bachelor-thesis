@@ -6,8 +6,9 @@ from amuse.units import nbody_system
 import helpers
 
 
-def t_rh(data):
-    N = data.params.n
+def t_rh(data, N=None):
+    if N is None:
+        N = data.params.n
     r_h = data.by_time()[0.0]['r50pc']
     G = nbody_system.G
     M = 1 | nbody_system.mass
