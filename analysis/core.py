@@ -65,8 +65,9 @@ def scan_binary_metrics(data, config, t_rhi, kT,
 
     if reverse is True:
         times = numpy.flip(data.metrics['times'])
-        snapshots = data.snapshots
+        snapshots = data.snapshots.copy()
         snapshots.reverse()
+
         print("Looking for t_bin_0 in reversed order")
     elif reverse is False:
         times = data.metrics['times']
