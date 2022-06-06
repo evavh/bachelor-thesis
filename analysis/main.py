@@ -64,12 +64,13 @@ if __name__ == '__main__':
         pickle.dump((first_binary_ids, Eb, t_bin_0, t_bin_10),
                     open(config.output+"Eb-t_bin_0.pkl", "wb"))
 
-    plotting.Eb(data, config, Eb)
+    if Eb is not None:
+        plotting.Eb(data, config, Eb)
 
     core.produce_scatterplots(data, config, first_binary_ids, t_max)
-    plotting.radii(data, config)
-    plotting.number_of_binaries(data, config, t_rhi)
     plotting.integration_time(data, config)
+    plotting.number_of_binaries(data, config, t_rhi)
+    plotting.radii(data, config)
 
     if not config.fast_plot:
         plotting.N_core(data, config)

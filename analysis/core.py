@@ -18,6 +18,9 @@ def find_first_binary(data, t_rhi):
     first_binary_ids = None
     t_bin = None
 
+    if 'binaries' not in metrics:
+        return None, None
+
     for time, binaries in zip(metrics['times'], metrics['binaries']):
         if binaries != [] and not binaries_found:
             binaries_found = True
@@ -45,6 +48,8 @@ def scan_binary_metrics(data, config, t_rhi, kT,
 
     if config.binary_ids is None:
         first_binary_ids, t_bin_10 = find_first_binary(data, t_rhi)
+        if first_binary_ids is None:
+            return None, None, None, None
     else:
         Eb = []
         first_binary_ids = config.binary_ids

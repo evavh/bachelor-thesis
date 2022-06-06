@@ -4,6 +4,8 @@ import sys
 
 import input_output
 
+from amuse.units import nbody_system
+
 
 def flushed_print(string):
     print(string)
@@ -57,10 +59,26 @@ class Data:
             print("")
             flushed_print(f"Loaded snapshots of {len(self.snapshots)} steps")
 
-            for key in self.metrics:
-                assert (len(self.metrics[key]) == len(self.snapshots)),\
-                    (f"len({key})={len(self.metrics[key])},"
-                     f"there are {len(self.snapshots)} snaps")
+            if 'rvir' in self.metrics:
+                for key in self.metrics:
+                    assert (len(self.metrics[key]) == len(self.snapshots)),\
+                        (f"len({key})={len(self.metrics[key])},"
+                         f"there are {len(self.snapshots)} snaps")
+            else:
+                print("Metrics missing, recalculating radii")
+                self.metrics['rvir'] = []
+                self.metrics['density_centre'] = []
+                self.metrics['rcore'] = []
+                for snapshot in self.snapshots:
+                    rvir = snapshot.virial_radius()
+                    density_centre, core_radius, core_density = \
+                        snapshot.densitycentre_coreradius_coredens()
+                    self.metrics['rvir'].append(rvir)
+                    self.metrics['density_centre'].append(density_centre)
+                    self.metrics['rcore'].append(core_radius.number)
+
+                self.metrics['rcore'] = self.metrics['rcore']\
+                    | nbody_system.length
 
         self.consts = pickle.load(open(config.input+"constants.pkl", "rb"))
         flushed_print(f"Loaded constants: {list(self.consts.keys())}")
