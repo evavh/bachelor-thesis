@@ -71,11 +71,13 @@ def scatter(config, snapshot, time, output_folder, xylims, rvir,
     N = len(snapshot)
     kT = 1/(6*N)
     if first_binary is None:
-        pyplot.suptitle(f"t = {time.number} (nbody time)")
+        pyplot.suptitle(f"t = {round(time.number, 5)} (n-body time)")
     else:
         Eb = formulas.binding_energy(first_binary[0], first_binary[1])
-        pyplot.suptitle((f"t = {time.number} (nbody time), "
-                         f"Eb = {round(Eb.number/kT, 1)} kT"))
+        pyplot.suptitle((f"t = {round(time.number, 5)} (n-body time)\n"
+                         f"Binary ({round(first_binary_ids[0])},"
+                         f"{round(first_binary_ids[1])}) Eb ="
+                         f" {round(Eb.number/kT, 1)} kT"))
     pyplot.savefig(output_folder+str(time)+".svg", format='svg')
     pyplot.clf()
 
