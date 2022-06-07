@@ -36,8 +36,8 @@ if __name__ == '__main__':
 
     times = input_output.extract_times(config.dir).number
 
-    pyplot.plot(times[1:], integration_times)
-    pyplot.xlabel("t")
+    pyplot.plot(times[1:], integration_times[:225], color='k')
+    pyplot.xlabel("t [n-body time]")
     pyplot.ylabel("Integration time [s]")
 
     pyplot.savefig(config.output+"integration_time.svg", format='svg')

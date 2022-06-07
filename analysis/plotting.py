@@ -46,7 +46,7 @@ def scatter(config, snapshot, time, output_folder, xylims, rvir,
                        fc='w', ec='k', marker='o')
 
         for x, y, id in zip(x_of_binary, y_of_binary, first_binary_ids):
-            pyplot.annotate(round(id), (x + 0.01, y + 0.01), fontsize=5)
+            pyplot.annotate(round(id), (x + 0.005, y + 0.005), fontsize=5)
 
     interesting_ids = config.interesting
     if interesting_ids is not None:
@@ -56,7 +56,7 @@ def scatter(config, snapshot, time, output_folder, xylims, rvir,
         y_of_interesting = interesting_stars.y/rvir
 
         for x, y, id in zip(x_of_interesting, y_of_interesting, interesting_ids):
-            pyplot.annotate(round(id), (x, y), fontsize=5)
+            pyplot.annotate(round(id), (x + 0.005, y + 0.005), fontsize=5)
 
     pyplot.xlabel("$x/r_v$")
     pyplot.ylabel("$y/r_v$")
@@ -123,8 +123,8 @@ def integration_time(data, config):
     metrics = data.metrics
     times = metrics['times'].value_in(nbody_system.time)
 
-    pyplot.plot(times[1:], metrics['integration_time'][1:])
-    pyplot.xlabel("t")
+    pyplot.plot(times[1:], metrics['integration_time'][1:], color='k')
+    pyplot.xlabel("t [n-body time]")
     pyplot.ylabel("Integration time [s]")
 
     pyplot.savefig(config.output+"integration_time.svg", format='svg')
@@ -162,10 +162,10 @@ def Eb(data, config, Eb):
         times = range(len(Eb))
     else:
         times = data.metrics['times'].number
-    pyplot.plot(times, Eb, color='k', linewidth=2.0)
+    pyplot.plot(times, Eb, color='k')
     pyplot.axhline(y=config.energy_threshold, color='k', linestyle='--')
-    pyplot.xlabel("t")
-    pyplot.ylabel("Eb of the binary")
+    pyplot.xlabel("t [n-body time]")
+    pyplot.ylabel("Eb [kT]")
     pyplot.savefig(config.output+"Eb.svg", format='svg')
     pyplot.clf()
     print("Finished plotting Eb")
@@ -181,6 +181,16 @@ def work_function(work_for_star, data, config, Eb, start, stop, taus=None):
     for star in work_for_star:
         pyplot.plot(times, work_for_star[star],
                     label=str(star), color='k', linewidth=0.7)
+
+    pyplot.annotate("34",
+                    (times[-1] - 0.1,
+                        work_for_star[34.0][-1] + 10), fontsize=10)
+    pyplot.annotate("binary",
+                    (times[-1] - 0.2,
+                        Eb[stop] + 10), fontsize=10)
+    pyplot.annotate("other stars",
+                    (times[-1] - 0.36,
+                        work_for_star[673.0][-1] - 20), fontsize=10)
     pyplot.plot(times,
                 Eb[start:stop], label="The binary", color='k', linewidth=2.0)
     # pyplot.plot(times,
@@ -189,7 +199,6 @@ def work_function(work_for_star, data, config, Eb, start, stop, taus=None):
 
     pyplot.xlabel(r"$\tau$")
     pyplot.ylabel("Work on / Eb of binary [kT]")
-    pyplot.legend()
 
     pyplot.savefig(config.output+"work_function.svg", format='svg')
     pyplot.clf()
